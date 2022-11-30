@@ -3,3 +3,5 @@
 Makefile
 
 GIT_ROOT/build
+
+*.csv
