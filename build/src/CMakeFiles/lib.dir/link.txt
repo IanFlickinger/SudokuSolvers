@@ -1,0 +1,2 @@
+C:/cygwin64/bin/ar.exe qc liblib.a CMakeFiles/lib.dir/puzzle.cpp.obj CMakeFiles/lib.dir/data.cpp.obj CMakeFiles/lib.dir/display.cpp.obj CMakeFiles/lib.dir/solvers/basic_solvers.cpp.obj CMakeFiles/lib.dir/solvers/annealing_solvers.cpp.obj CMakeFiles/lib.dir/solvers/graph_solvers.cpp.obj
+C:/cygwin64/bin/ranlib.exe liblib.a

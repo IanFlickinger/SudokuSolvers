@@ -1,0 +1,42 @@
+[
+{
+  "directory": "C:/Users/ianfl/Documents/Projects/Sudoku/build",
+  "command": "C:/cygwin64/bin/g++.exe  @CMakeFiles/benchmark.dir/includes_CXX.rsp -g -o CMakeFiles/benchmark.dir/benchmark/benchmark_main.cpp.obj -c C:/Users/ianfl/Documents/Projects/Sudoku/benchmark/benchmark_main.cpp",
+  "file": "C:/Users/ianfl/Documents/Projects/Sudoku/benchmark/benchmark_main.cpp"
+},
+{
+  "directory": "C:/Users/ianfl/Documents/Projects/Sudoku/build",
+  "command": "C:/cygwin64/bin/g++.exe  @CMakeFiles/benchmark.dir/includes_CXX.rsp -g -o CMakeFiles/benchmark.dir/benchmark/benchmarking.cpp.obj -c C:/Users/ianfl/Documents/Projects/Sudoku/benchmark/benchmarking.cpp",
+  "file": "C:/Users/ianfl/Documents/Projects/Sudoku/benchmark/benchmarking.cpp"
+},
+{
+  "directory": "C:/Users/ianfl/Documents/Projects/Sudoku/build/src",
+  "command": "C:/cygwin64/bin/g++.exe  @CMakeFiles/sudoku.dir/includes_CXX.rsp -g -o CMakeFiles/sudoku.dir/puzzle.cpp.obj -c C:/Users/ianfl/Documents/Projects/Sudoku/src/puzzle.cpp",
+  "file": "C:/Users/ianfl/Documents/Projects/Sudoku/src/puzzle.cpp"
+},
+{
+  "directory": "C:/Users/ianfl/Documents/Projects/Sudoku/build/src",
+  "command": "C:/cygwin64/bin/g++.exe  @CMakeFiles/sudoku.dir/includes_CXX.rsp -g -o CMakeFiles/sudoku.dir/data.cpp.obj -c C:/Users/ianfl/Documents/Projects/Sudoku/src/data.cpp",
+  "file": "C:/Users/ianfl/Documents/Projects/Sudoku/src/data.cpp"
+},
+{
+  "directory": "C:/Users/ianfl/Documents/Projects/Sudoku/build/src",
+  "command": "C:/cygwin64/bin/g++.exe  @CMakeFiles/sudoku.dir/includes_CXX.rsp -g -o CMakeFiles/sudoku.dir/display.cpp.obj -c C:/Users/ianfl/Documents/Projects/Sudoku/src/display.cpp",
+  "file": "C:/Users/ianfl/Documents/Projects/Sudoku/src/display.cpp"
+},
+{
+  "directory": "C:/Users/ianfl/Documents/Projects/Sudoku/build/src",
+  "command": "C:/cygwin64/bin/g++.exe  @CMakeFiles/sudoku.dir/includes_CXX.rsp -g -o CMakeFiles/sudoku.dir/solvers/basic_solvers.cpp.obj -c C:/Users/ianfl/Documents/Projects/Sudoku/src/solvers/basic_solvers.cpp",
+  "file": "C:/Users/ianfl/Documents/Projects/Sudoku/src/solvers/basic_solvers.cpp"
+},
+{
+  "directory": "C:/Users/ianfl/Documents/Projects/Sudoku/build/src",
+  "command": "C:/cygwin64/bin/g++.exe  @CMakeFiles/sudoku.dir/includes_CXX.rsp -g -o CMakeFiles/sudoku.dir/solvers/annealing_solvers.cpp.obj -c C:/Users/ianfl/Documents/Projects/Sudoku/src/solvers/annealing_solvers.cpp",
+  "file": "C:/Users/ianfl/Documents/Projects/Sudoku/src/solvers/annealing_solvers.cpp"
+},
+{
+  "directory": "C:/Users/ianfl/Documents/Projects/Sudoku/build/src",
+  "command": "C:/cygwin64/bin/g++.exe  @CMakeFiles/sudoku.dir/includes_CXX.rsp -g -o CMakeFiles/sudoku.dir/solvers/graph_solvers.cpp.obj -c C:/Users/ianfl/Documents/Projects/Sudoku/src/solvers/graph_solvers.cpp",
+  "file": "C:/Users/ianfl/Documents/Projects/Sudoku/src/solvers/graph_solvers.cpp"
+}
+]

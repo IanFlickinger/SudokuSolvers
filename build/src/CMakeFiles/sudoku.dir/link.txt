@@ -1,0 +1,2 @@
+C:/cygwin64/bin/ar.exe qc libsudoku.a CMakeFiles/sudoku.dir/puzzle.cpp.obj CMakeFiles/sudoku.dir/data.cpp.obj CMakeFiles/sudoku.dir/display.cpp.obj CMakeFiles/sudoku.dir/solvers/basic_solvers.cpp.obj CMakeFiles/sudoku.dir/solvers/annealing_solvers.cpp.obj CMakeFiles/sudoku.dir/solvers/graph_solvers.cpp.obj
+C:/cygwin64/bin/ranlib.exe libsudoku.a
