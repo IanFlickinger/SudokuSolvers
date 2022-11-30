@@ -1,5 +1,5 @@
 .vscode
 
-*/Makefile
+Makefile
 
-./build/
+GIT_ROOT/build
