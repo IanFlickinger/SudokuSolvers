@@ -2,8 +2,7 @@
 
 This directory contains all of the sudoku-solving algorithms implemented in the library. In this README are descriptions and comparisons of the algorithms.
 
-## Algorithms
-----------------
+# Algorithms
 ## Basic Searches
 
 **Depth-First Search**
@@ -38,24 +37,31 @@ In the Sudoku context, a good measurement of "height" is the number of constrain
 
 After defining a cost (height) function. A temperature schedule needs to be defined. The higher the temperature, the more kinetic energy the ball has, and the more likely it is to bounce out of a local minimum. The lower the temperature, the less kinetic energy the ball has, and the less likely the ball is to bounce out of a local minimum. By progressively cooling the temperature, the ball is more likely to find itself in the global minimum of the terrain.
 
-A number of temperature schedules were defined in [[2]](#references) for simulated annealing. A few are shown below where `t` represents the temperature.
+A number of temperature schedules were defined in a 1987 book titled *Simulated Annealing: Theory and Applications* [[2]](#references) for simulated annealing. A few are shown below where `t` represents the temperature.
 
 | Schedule | Initialize | Update |
 | --- | --- | --- |
 | Geometric(<code>t<sub>0</sub></code>, `a`) | <code>t = t<sub>0</sub></code>| `t = a * t` |
 
+Finally, a function `P(t, Δ)` which describes the acceptance probability (a.k.a. transition probability) must be defined. This function `P` depends on the temperature `t` and the change in height `Δ`. Note the dependence on the *change* in height as opposed to being solely dependent on the height. This allows the simulated annealing algorithm to make decisions locally - which is especially useful in contexts where the value of the global minimum is not known. The popularity vote for acceptance probability functions - and the choice for this algorithm - goes to the exponential function:
+
+    P(t, Δ) = exp(Δ / t)
+
+It is also often recommended to sample a series of random state changes (markov chain) in between temperature updates. This is the approach taken in [[1]](#references), recommended in [[2]](#references) and implemented here. As recommended in [[1]] the length of this chain is equal to the square of the number of empty cells in the provided puzzle.
+
 ## Collapsing Graph
 
-To build a thorough understanding of the collapsing graph solution to the Sudoku puzzle, we will begin by defining the Sudoku as a graph. While this is relatively straightforward for those familiar with Computer Science concepts and/or mathematics, it is important to stress that the definition of the graph here
+In this approach, the Sudoku graph is not the state space graph as defined above in [depth first search](#basic-searches). 
 
-We use the barycentric coordinate system. Why? Becuase I have a hunch that plain coordinates just aren't good enough.
+## Evolutionary Approaches
 
-### Evolutionary Approaches
-
-### Population-Based Approaches
+## Population-Based Approaches
 
 ## Algorithm Comparison
 -----------------
 
 ## References
-**\[1\]** Rhyd Lewis. “Metaheuristics can solve sudoku puzzles”. In: Journal of Heuristics 13.4 (2007), pp. 387–401. doi: [10.1007/s10732-007-9012-8](doi.org/10.1007/s10732-007-9012-8).
+
+**[1]** Rhyd Lewis. “Metaheuristics can solve sudoku puzzles”. In: Journal of Heuristics 13.4 (2007), pp. 387–401. doi: [10.1007/s10732-007-9012-8](doi.org/10.1007/s10732-007-9012-8).
+
+**[2]** Laarhoven, et.al. "Simulated Annealing: Theory and Applications", 1987, Volume 37 ISBN : 978-90-481-8438-5.
