@@ -21,9 +21,9 @@ void AnnealingSolver::solve(Puzzle &puzzle) {
      std::cout << "AnnealingSolver::solve(Puzzle &)\n";
     #endif
     // "markov chain" config
-    unsigned chainLength = 0;
-    for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++) chainLength += puzzle.isConcrete(cell);
-    chainLength = chainLength * chainLength;
+    unsigned chainLength = puzzle.getSizeSquared();
+    for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++) chainLength -= puzzle.isConcrete(cell);
+    // chainLength = chainLength * chainLength;
     unsigned iterations = chainLength * this->iterations;
 
     #ifdef DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE

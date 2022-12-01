@@ -2,16 +2,10 @@
 #define SUDOKU_DATA_H
 
 #include <string>
+#include <fstream>
 #include "puzzle.h"
 
-#define SUDOKU_DATASET_9X9 "../9x9.csv"
-#define SUDOKU_DATASET_9X9_SIZE 1000000UL
-#define SUDOKU_DATASET_4X4 "../4x4.csv"
-#define SUDOKU_DATASET_4X4_SIZE 1000000UL
-
 #define RAND_MAX_LOWER_BOUND_FACTOR 10 // 10*DATASET_SIZE to ensure biggest uniform pmf discrepancy is 11:10
-
-
 #define SUDOKU_DATASET_HEADER_LINESIZE 15 // Puzzle,Solution
 
 class PuzzleLoader {
@@ -44,7 +38,19 @@ class PuzzleLoader {
         inline Puzzle load() const { return load(time(NULL)); }
 };
 
-const PuzzleLoader SUDOKU_9X9_LOADER(SUDOKU_DATASET_9X9, SUDOKU_DATASET_9X9_SIZE, 9);
-const PuzzleLoader SUDOKU_4X4_LOADER(SUDOKU_DATASET_4X4, SUDOKU_DATASET_4X4_SIZE, 4);
+class PuzzleDumper {
+    private:
+        const std::string filepath;
+        const unsigned char puzzleSize;
+        unsigned char digits;
+        std::ofstream file;
+
+        void startFile();
+    public:
+        PuzzleDumper(std::string filepath, unsigned char puzzleSize);
+
+        void dump(const Puzzle &puzzle);
+        void dump(const Puzzle *puzzle, unsigned num);
+};
 
 #endif

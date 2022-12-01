@@ -85,10 +85,10 @@ void compareSolvers(
 	Solvers::Solver **solvers,
 	time_compare_t &timeCompare
 ) {
-	#ifdef DEBUG_MAIN_CPP
+	#ifdef DEBUG_BENCHMARK_CPP
 	 cout << "compareSolvers(Solver&, Solver&, " << numTests << ", " << numPuzzles  << ")" << endl;
 	#endif
-	#ifdef DEBUG_MAIN_CPP_VERBOSE
+	#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
 	 cout << setw(55) << setfill('=') << "" << endl;
 	#endif
 	Puzzle puzzles[numPuzzles]; 
@@ -96,14 +96,14 @@ void compareSolvers(
 	unsigned start, stop, duration, numSolved;
 	for (unsigned testNum = 0; testNum < numTests; testNum++) {
 		// Sample puzzles
-		#ifdef DEBUG_MAIN_CPP_VERBOSE
+		#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
 		 cout << "Sampling " << numPuzzles << " Puzzles" << endl;
 		#endif
 		for (Puzzle *ptr = puzzles, *maxPtr = ptr+numPuzzles; ptr < maxPtr; ptr++) {
 			Puzzle temp = SUDOKU_PUZZLE_LOADER.load();
 			ptr->swap(temp);
 		}
-		#ifdef DEBUG_MAIN_CPP_VERBOSE
+		#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
 		if (numPuzzles == 1) Display::showPuzzle(*puzzles);
 		#endif
 
@@ -113,7 +113,7 @@ void compareSolvers(
 			std::string &name = names[solverNum];
 
 			// Test solver 
-			#ifdef DEBUG_MAIN_CPP_VERBOSE
+			#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
 			cout << "Running " << name << " solver" << endl;
 			#endif
 			start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
@@ -122,7 +122,7 @@ void compareSolvers(
 			}
 			stop = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
 			
-			#ifdef DEBUG_MAIN_CPP_VERBOSE
+			#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
 			if (numPuzzles == 1) Display::showPuzzle(*puzzles);
 			#endif
 
@@ -138,7 +138,7 @@ void compareSolvers(
 				<< setprecision(5) << duration * 1e-3 << " seconds\n";
 
 			// Reset
-			#ifdef DEBUG_MAIN_CPP_VERBOSE
+			#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
 			cout << "Resetting Puzzles" << endl;
 			#endif
 			for (unsigned i = 0; i < numPuzzles; i++) puzzles[i].reset();

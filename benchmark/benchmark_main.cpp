@@ -1,12 +1,12 @@
 #include "benchmarking.h"
 
 /****************************************************************************************/
-// SET_LOADER(SUDOKU_4X4_LOADER)
-// SET_LOADER(SUDOKU_9X9_LOADER) // DEFAULT
+const PuzzleLoader PUZZLE_LOADER("../9x9.csv", 1000000UL, 9);
+SET_LOADER(PUZZLE_LOADER);
 /****************************************************************************************/
-ADD_SOLVER(Solvers::DepthFirstSolver(), DepthFirst)
+// ADD_SOLVER(Solvers::DepthFirstSolver(), DepthFirst)
 // ADD_SOLVER(Solvers::DepthFirstSolverV1(), DepthFirstV1)
-// ADD_SOLVER(Solvers::GeometricAnnealingSolver(50, 10, 2000, 0.2), GeometricAnnealing)
+ADD_SOLVER(Solvers::GeometricAnnealingSolver(50, 10, 2000, 0.2), GeometricAnnealing)
 // ADD_SOLVER(Solvers::CollapsingGraphSolver(), CollapsingGraph)
 /****************************************************************************************/
 

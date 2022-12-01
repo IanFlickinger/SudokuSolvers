@@ -2,6 +2,8 @@
 #include "puzzle.h"
 #include <string>
 #include <fstream>
+#include <filesystem>
+#include <cmath>
 
 #ifdef DEBUG_DATA_CPP
  #include <iostream>
@@ -85,4 +87,33 @@ Puzzle PuzzleLoader::load(unsigned seed) const {
     #endif
     // return Puzzle(perfectSqrt(sizeSquared), values);
     return Puzzle(this->puzzleSize, values, solution, false);
+}
+
+PuzzleDumper::PuzzleDumper(std::string filepath, unsigned char puzzleSize) 
+    : filepath(filepath), puzzleSize(puzzleSize) 
+{ 
+    this->digits = std::ceil(std::log10(puzzleSize));
+    startFile(); 
+};
+
+void PuzzleDumper::startFile() {
+    std::ofstream file(this->filepath, std::ios_base::out);
+    file << "Puzzle,Solution" << std::endl;
+    file.close();
+}
+
+void PuzzleDumper::dump(const Puzzle *puzzles, unsigned num) {
+    for (const Puzzle *p = puzzles, *pMax = p + num; p < pMax; p++) this->dump(*p);
+}
+
+void PuzzleDumper::dump(const Puzzle &puzzle) {
+    std::string values, solution;
+    for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++) {
+        std::string str = std::to_string(puzzle.getValue(cell));
+        if (puzzle.isConcrete(cell)) values += str;
+        solution += str;
+    }
+    std::ofstream file(this->filepath, std::ios_base::app);
+    file << values << ',' << solution << std::endl;
+    file.close();
 }

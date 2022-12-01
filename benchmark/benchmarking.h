@@ -14,7 +14,7 @@ class BenchmarkPuzzleLoader {
     public:
         static BenchmarkPuzzleLoader * GetInstance();
 
-        BenchmarkPuzzleLoader() : loader(&SUDOKU_9X9_LOADER) {};
+        BenchmarkPuzzleLoader() {};
         void setLoader(const PuzzleLoader &loader) { this->loader = &loader; }
         const PuzzleLoader &getLoader() const { return *this->loader; }
 };

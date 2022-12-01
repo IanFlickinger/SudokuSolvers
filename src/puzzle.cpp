@@ -593,11 +593,11 @@ unsigned Puzzle::numConflictsInBox(unsigned char majorRow, unsigned char majorCo
 
 unsigned Puzzle::numConflictsAt(unsigned cell) const {
 	unsigned value = this->values[cell], conflicts = 0;
-	unsigned *neighbor = this->neighbors[0];
+	unsigned *neighbor = this->neighbors[cell];
 	unsigned *neighborCeiling = neighbor + this->computeNeighborhoodSize();
-	for (unsigned * neighbor = this->neighbors[0]; neighbor < neighborCeiling; neighbor++)
+	for ( ; neighbor < neighborCeiling; neighbor++)
 		if (*neighbor == value) conflicts++;
-	return false;
+	return conflicts;
 }
 
 unsigned Puzzle::numConflicts() const {
@@ -686,9 +686,4 @@ Puzzle::~Puzzle() {
 		delete[] *i;
 	}
 	delete[] this->neighborhoods;
-}
-
-std::string Puzzle::to_string() {
-	unsigned char digits = std::log10(this->size);
-	return "PUZZLE STRING!!!";
 }

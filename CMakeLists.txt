@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 3.5) # minimum specified in gtest build
 
 # set debugging definitions
 set(debug_defs 
-    DEBUG_MAIN_CPP_VERBOSE
+    # DEBUG_BENCHMARK_CPP_VERBOSE
     # DEBUG_PUZZLE_CPP_VERBOSE
-    DEBUG_DATA_CPP_VERBOSE
+    # DEBUG_DATA_CPP_VERBOSE
     # DEBUG_DISPLAY_CPP
     # DEBUG_BASIC_SOLVERS_CPP_VERBOSE
-    DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-    # DEBUG_ANNEALING_SOLVERS_CPP
+    # DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
+    # DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
+    DEBUG_GENERATE_CPP
 )
 
 # test code
@@ -79,7 +80,7 @@ if (TEST)
     target_include_directories(runTests PRIVATE src)
     target_link_libraries(runTests gtest sudoku)
 elseif(GENERATE)
-    add_executable(generate generate/generate_main.cpp)
+    add_executable(generate generate/generate_main.cpp generate/generate.cpp)
 
     target_include_directories(generate PRIVATE include)
     target_link_libraries(generate sudoku)

@@ -1,8 +1,14 @@
+// standard libraries
 #include <stdlib.h>
 #include <iostream>
 #include <string.h>
 
+// sudoku library
 #include "puzzle.h"
+#include "data.h"
+
+// generate library
+#include "generate.h"
 
 using namespace std;
 
@@ -10,6 +16,7 @@ int main(int argc, char **argv) {
     // -o, --output filepath
     // -n, --number dataset_size
     // -s, --size puzzle_size
+    // -d, --dims ndims TODO
     // -pr, --resample-prob resampleP
     // -pa, --alter-prob alterP
     // -pg, --generate-prob generateP
@@ -63,6 +70,10 @@ int main(int argc, char **argv) {
         filepath = size + "x" + size + ".csv";
     }
 
-    Puzzle puzzle(puzzleSize);
-    cout << "to_string(Puzzle)=" << puzzle.to_string() << endl;
+    cout << "Generating Puzzle" << endl;
+    Puzzle puzzle = MarkovAnnealingGenerator(puzzleSize, 2, resampleP, alterP, generateP).build();
+    cout << "Dumping Puzzle" << endl;
+    PuzzleDumper("../test.csv", puzzleSize).dump(puzzle);
+
+    return 0;
 }

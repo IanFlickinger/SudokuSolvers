@@ -11,7 +11,7 @@ bool isSudokuSolution(unsigned char, unsigned char*);
 bool sudokuHasConflict(unsigned char, unsigned char*);
 
 class Puzzle {
-	private:
+	protected:
 		unsigned char sizeSqrt; // standard sudoku will be 3
 		unsigned char size; // standard sudoku will be 9
 		unsigned sizeSquared; // standard sudoku will be 81
@@ -89,9 +89,6 @@ class Puzzle {
 		unsigned numConflictsAt(unsigned cell) const;
 		unsigned numConflictsAt(unsigned char row, unsigned char col) const
 			{ return numConflictsAt(COORDS_TO_CELL(row, col, size)); }
-
-		// Friend functions
-		std::string to_string();
 };
 
 #endif
