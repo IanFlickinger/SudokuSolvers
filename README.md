@@ -1,6 +1,6 @@
 # Sudoku Solvers
 
-In this repository is a library with sudoku-solving algorithms, and a program for benchmarking these algorithms. The sudoku-generating portion is currently under construction.
+In this repository is a library with [sudoku-solving algorithms](./src/solvers/README.md), and a program for benchmarking these algorithms. The sudoku-generating portion is currently under construction.
 
 This README will introduce the basics of using this repository. More detailed information is provided in the other READMEs which are linked here when appropriate.
 
@@ -12,7 +12,7 @@ This README will introduce the basics of using this repository. More detailed in
 The cmake setup for this project includes the following options:
  - TEST: compiles the test code when set to ON
  - GENERATE: compiles the sudoku generation code (not yet functional) when set to ON
- - DEBUG: compiles the code with [compiler-conditioned debugging](#debugging), controlled by the `debug_defs` variable in the primary CMakeLists.txt file. See [debugging](#debugging) below for more information.
+ - DEBUG: compiles the code with compiler-conditioned debugging, controlled by the `debug_defs` variable in the primary CMakeLists.txt file. See [debugging](#debugging) below for more information.
 
 ### Comparing Solvers
 
