@@ -110,7 +110,6 @@ typedef struct simplex_data_t {
     }
 
     bool collapse() {
-        if (this->value) return false;
         for (double *val = position, dim = 0; dim < ndims; dim++, val++) 
             if (*val > COLLAPSE_THRESHOLD) {
                 this->collapseTo(dim+1);
@@ -244,7 +243,7 @@ void CollapsingGraphSolver::solve(Puzzle &puzzle) {
             }
             // updateCursor->constrainAffine();
             // updateCursor->constrainSimplex();
-            // *updateCursor *= 1 / 3.;
+            *updateCursor *= 1 / 3.;
         }
 
         // update state
@@ -256,8 +255,8 @@ void CollapsingGraphSolver::solve(Puzzle &puzzle) {
         for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++, dataCursor++, updateCursor++) {
             if (puzzle.isConcrete(cell)) continue;
             // *dataCursor &= *updateCursor;
-            dataCursor->swap(*updateCursor);
-            // *dataCursor += *updateCursor;
+            // dataCursor->swap(*updateCursor);
+            *dataCursor += *updateCursor;
             dataCursor->constrainSimplex();
             #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
              simplex_data_t mem(*dataCursor);
@@ -280,122 +279,7 @@ void CollapsingGraphSolver::solve(Puzzle &puzzle) {
         neighborhood++;
         if (neighborhood == 3) neighborhood = 0;
     }
-
-    // for (unsigned node = 0; node < puzzle.getSizeSquared(); node++) {
-    //     delete nodeData[node].position;
-    // }
+    
     delete[] data;
     delete[] update;
 }
-
-// void CollapsingGraphSolver::solve(Puzzle &puzzle) {
-//     #ifdef DEBUG_GRAPH_SOLVERS_CPP
-//      std::cout << "CollapsingGraphSolver::solve(Puzzle &puzzle)\n" << std::endl;
-//     #endif
-//     #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//      std::cout << std::setw(55) << std::setfill('=') << "\n" << std::endl;
-//     #endif
-
-//     const unsigned **neighborList = puzzle.neighborList();
-//     const unsigned **neighborListMax = neighborList + puzzle.getSizeSquared();
-
-//     #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//      std::cout << "Initializing simplex data" << std::endl;
-//     #endif
-
-//     const double simplexInitVal = 1. / puzzle.getSize();
-
-//     simplex_data_t *data = new simplex_data_t[puzzle.getSizeSquared()];
-//     simplex_data_t *update = new simplex_data_t[puzzle.getSizeSquared()];
-//     simplex_data_t *dataCursorCeiling = data + puzzle.getSizeSquared();
-//     unsigned cell = 0;
-//     for (simplex_data_t *dataCursor = data, *updateCursor = update; 
-//         dataCursor < dataCursorCeiling; dataCursor++, updateCursor++, cell++
-//     ) {
-//         dataCursor->init(puzzle.getSize(), simplexInitVal);
-//         updateCursor->init(puzzle.getSize(), simplexInitVal);
-//         if (puzzle.isConcrete(cell)) {
-//             unsigned char value = puzzle.getValue(cell);
-//             dataCursor->collapseTo(value);
-//         }
-//         #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//          std::cout << "\tSimplex data for cell " << cell << ": " << std::to_string(*dataCursor) << std::endl;
-//         #endif
-//     }
-
-//     const simplex_data_t ONES{puzzle.getSize(), 1.};
-//     const simplex_data_t ZEROS(puzzle.getSize(), 0.);
-    
-
-//     #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//      std::cout << "Beginning graph collapse procedure" << std::endl;
-//      unsigned iteration = 1;
-//     #endif
-//     while(!puzzle.isSolved()) {
-//         const unsigned **neighborListCursor = neighborList;
-//         simplex_data_t *dataCursor = data, *updateCursor = update;
-
-//         // compute next state
-//         #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//          std::cout << "Iteration " << iteration << ": Computing next states" << std::endl;
-//          unsigned cell = 0;
-//         #endif
-//         for ( ; dataCursor < dataCursorCeiling; neighborListCursor++, dataCursor++, updateCursor++) {
-//             #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//              cell++;
-//             #endif
-//             if (dataCursor->value) continue;
-//             #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//              std::cout << "\tComputing update for cell " << cell-1 << ": "<< std::to_string(*dataCursor) << std::endl;
-//             #endif
-//             const unsigned neighborhoodSize = puzzle.computeNeighborhoodSize();
-//             const unsigned *neighborCursor = *neighborListCursor;
-//             const unsigned *neighborCursorMax = neighborCursor + neighborhoodSize;
-//             *updateCursor = *dataCursor; 
-//             *updateCursor *= neighborhoodSize;
-//             for ( ; neighborCursor < neighborCursorMax; neighborCursor++) {
-//                 #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//                  std::cout << "\t\tUpdate from neighboring cell " << *neighborCursor << ": " << std::to_string(data[*neighborCursor]) << std::endl;
-//                 #endif
-//                 *updateCursor -= data[*neighborCursor];
-//             }
-//             updateCursor->constrainAffine();
-//             updateCursor->constrainSimplex();
-//         }
-
-//         // update state
-//         #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//          std::cout << "Iteration " << iteration << ": Updating states" << std::endl;
-//          iteration++;
-//         #endif
-//         dataCursor = data, updateCursor = update;
-//         for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++, dataCursor++, updateCursor++) {
-//             if (dataCursor->value) continue;
-//             dataCursor->swap(*updateCursor);
-//             // *dataCursor += *updateCursor;
-//             // dataCursor->constrainSimplex();
-//             #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//              simplex_data_t mem(*dataCursor);
-//             #endif
-            
-//             if (dataCursor->collapse()) 
-//             #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//             {
-//                 std::cout << "\tCollapsing cell at row " << std::to_string(cell / puzzle.getSize())
-//                           << " and column " << std::to_string(cell % puzzle.getSize())
-//                           << " to " << std::to_string(dataCursor->value) 
-//                           << " from " << std::to_string(mem) << std::endl;
-//             #endif
-//                 puzzle.setValue(cell, dataCursor->value);
-//             #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-//             }
-//             #endif
-//         }
-//     }
-
-//     // for (unsigned node = 0; node < puzzle.getSizeSquared(); node++) {
-//     //     delete nodeData[node].position;
-//     // }
-//     delete[] data;
-//     delete[] update;
-// }

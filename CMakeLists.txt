@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.5) # minimum specified in gtest build
-
 # set debugging definitions
 set(debug_defs 
     # DEBUG_BENCHMARK_CPP_VERBOSE
@@ -9,8 +7,10 @@ set(debug_defs
     # DEBUG_BASIC_SOLVERS_CPP_VERBOSE
     # DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
     # DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
-    DEBUG_GENERATE_CPP
+    # DEBUG_GENERATE_CPP
 )
+
+cmake_minimum_required(VERSION 3.5) # minimum specified in gtest build
 
 # test code
 set(testCodeFiles

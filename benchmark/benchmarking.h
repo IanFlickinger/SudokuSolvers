@@ -12,10 +12,12 @@ class BenchmarkPuzzleLoader {
     private:
         const PuzzleLoader * loader;
     public:
+        static unsigned calls;
         static BenchmarkPuzzleLoader * GetInstance();
 
         BenchmarkPuzzleLoader() {};
-        void setLoader(const PuzzleLoader &loader) { this->loader = &loader; }
+        ~BenchmarkPuzzleLoader() { delete this->loader; }
+        void setLoader(const PuzzleLoader * loader) { delete this->loader; this->loader = loader; }
         const PuzzleLoader &getLoader() const { return *this->loader; }
 };
 
@@ -46,11 +48,11 @@ class SolverList {
 };
 
 
-#define SET_LOADER(loader) struct LoaderDummyClass_ ## loader ## _t { \
+#define SET_LOADER(loader) struct LoaderDummyClass_t { \
     static int dummy; \
-    static int registerLoader() { BenchmarkPuzzleLoader::GetInstance()->setLoader(loader); return 0; } \
+    static int registerLoader() { BenchmarkPuzzleLoader::GetInstance()->setLoader(new loader); return 0; } \
 }; \
-int LoaderDummyClass_ ## loader ## _t::dummy = LoaderDummyClass_ ## loader ## _t::registerLoader();
+int LoaderDummyClass_t::dummy = LoaderDummyClass_t::registerLoader();
 
 #define SUDOKU_PUZZLE_LOADER BenchmarkPuzzleLoader::GetInstance()->getLoader()
 

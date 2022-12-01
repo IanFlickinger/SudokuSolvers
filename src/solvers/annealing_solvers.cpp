@@ -23,7 +23,7 @@ void AnnealingSolver::solve(Puzzle &puzzle) {
     // "markov chain" config
     unsigned chainLength = puzzle.getSizeSquared();
     for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++) chainLength -= puzzle.isConcrete(cell);
-    // chainLength = chainLength * chainLength;
+    chainLength = chainLength * chainLength;
     unsigned iterations = chainLength * this->iterations;
 
     #ifdef DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
