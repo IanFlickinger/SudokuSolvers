@@ -40,9 +40,9 @@ After defining a cost (height) function. A temperature schedule needs to be defi
 
 A number of temperature schedules were defined in [[2]](#references) for simulated annealing. A few are shown below where `t` represents the temperature.
 
-| Schedule | Equation |
-| --- | --- |
-| Geometric(t<sub>0</sub>, a) | t = a * t |
+| Schedule | Initialize | Update |
+| --- | --- | --- |
+| Geometric(<code>t<sub>0</sub></code>, `a`) | <code>t = t<sub>0</sub></code>| `t = a * t` |
 
 ## Collapsing Graph
 
