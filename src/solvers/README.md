@@ -42,7 +42,7 @@ A number of temperature schedules were defined in [[2]](#references) for simulat
 
 | Schedule | Equation |
 | --- | --- |
-| Geometric(`t<html><sub>0</sub></html>`, `a`) | t = `a` * t |
+| `Geometric(t`<sub>`0`</sub>`, a)` | `t = a * t` |
 
 ## Collapsing Graph
 
