@@ -26,13 +26,23 @@ After implementing this algorithm, it was rewritten with several optimizations i
 
 ## Simulated Annealing
 
-This algorithm was implemented according to [\[1\]](). 
+This algorithm was implemented according to [[1]](#references). 
 
-Simulated annealing is a metaheuristic 
+Simulated annealing is a [metaheuristic](https://en.wikipedia.org/wiki/Metaheuristic "Wikipedia") which borrows from metallurgy concepts. For a great visual introduction to the idea of annealing, check out [Steve Mould's YouTube video](https://www.youtube.com/watch?v=xuL2yT-B2TM) *(8min)*.
+
+In the video, Steve Mould demonstrates annealing using metallic balls which are settling due to gravity. The implementation of simulated annealing in the context of Sudoku is more analagous to a situation in which only one of those balls is animated while the rest are static, and the animated ball is searching for the lowest dimple in the terrain.
+
+To implement the algorithm, a cost function has to be defined which acts as a measurement of the "height" of the ball. The optimal resting place for the ball is the location in which it has the lowest height.
+
+In the Sudoku context, a good measurement of "height" is the number of constraint violations (i.e., the number of cells which share the same value as a neighbor).
+
+After defining a cost (height) function. A temperature schedule needs to be defined. The higher the temperature, the more kinetic energy the ball has, and the more likely it is to bounce out of a local minimum. The lower the temperature, the less kinetic energy the ball has, and the less likely the ball is to bounce out of a local minimum. By progressively cooling the temperature, the ball is more likely to find itself in the global minimum of the terrain.
+
+A number of temperature schedules were defined in [[2]](#references) for simulated annealing. A few are shown below where `t` represents the temperature.
 
 | Schedule | Equation |
 | --- | --- |
-| Geometric | t = a * t |
+| Geometric(`t<html><sub>0</sub></html>`, `a`) | t = `a` * t |
 
 ## Collapsing Graph
 
