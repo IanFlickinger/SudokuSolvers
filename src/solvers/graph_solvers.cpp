@@ -62,10 +62,6 @@ typedef struct simplex_data_t {
         for (double *a = position; a < positionEnd; a++) *a *= factor;
         return *this;
     }
-    simplex_data_t &operator&=(const simplex_data_t &other) {
-        for (double *a = position, *b = other.position; a < positionEnd; a++, b++) *a = *b ? *a : 0;
-        return *this;
-    }
     simplex_data_t &operator=(const simplex_data_t &other) {
         this->value = other.value;
         for (double *a = position, *b = other.position; a < positionEnd; a++, b++) *a = *b;
@@ -77,23 +73,8 @@ typedef struct simplex_data_t {
         std::swap(value, other.value);
         std::swap(ndims, other.ndims);
     }
-
-    void constrainAffine() {
-        double sum = 0;
-        for (double *val = position; val < positionEnd; val++) sum += *val;
-        double update = -sum / ndims;
-        for (double *val = position; val < positionEnd; val++) *val += update;
-    }
     
     void constrainSimplex() {
-        // double sum = 0;
-        // for (double *val = position; val < positionEnd; val++) {
-        //     if (*val < 0) *val = 0;
-        //     else sum += *val;
-        // }
-        // if (sum != 0) for (double *val = position; val < positionEnd; val++) *val /= sum;
-        // else for (double *val = position, value = 1. / ndims; val < positionEnd; val++) *val = value;
-
         bool collapsing = true;
         while (collapsing) {
             collapsing = false;
@@ -121,11 +102,6 @@ typedef struct simplex_data_t {
         for (double *val = position; val < positionEnd; val++) *val = 0;
         this->position[value-1] = 1;
         this->value = value;
-    }
-    void forceCollapse() {
-        double max = 0;
-        for (double dim = 0, *val = position; dim < ndims; dim++, val++)
-            if (*val > max) { max = *val, this->value = dim; }
     }
 
     ~simplex_data_t() {
@@ -177,42 +153,20 @@ void CollapsingGraphSolver::solve(Puzzle &puzzle) {
         #endif
     }
 
-    // #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-    //  std::cout << "Propagating collapses to immediate neighbors" << std::endl;
-    // #endif
-    // cell = 0;
-    // const unsigned **neighborListCursor = puzzle.neighborList();
-    // for (simplex_data_t *dataCursor = data; 
-    //     dataCursor < dataCursorCeiling; dataCursor++, neighborListCursor++, cell++
-    // ) {
-    //     if (puzzle.isConcrete(cell)) continue;
-    //     for (const unsigned *neighborCursor = *neighborListCursor, *cursorMax = neighborCursor + puzzle.computeNeighborhoodSize(); 
-    //     neighborCursor < cursorMax; neighborCursor++) {
-    //         if (puzzle.isConcrete(*neighborCursor)) {
-    //             dataCursor->position[data[*neighborCursor].value] = 0; 
-    //         }
-    //     }
-    //     dataCursor->constrainSimplex();
-    //     #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-    //      std::cout << "\tSimplex data for cell " << cell << ": " << std::to_string(*dataCursor) << std::endl;
-    //     #endif
-    // }
-
-    const simplex_data_t ONES{puzzle.getSize(), 1.};
-    const simplex_data_t ZEROS(puzzle.getSize(), 0.);
+    const simplex_data_t ONES(puzzle.getSize(), 1.);
     const simplex_data_t CENTROID(puzzle.getSize(), simplexInitVal);
+    const double SCALE_FACTOR = 1. / 3; // 1 / number of neighborhoods (1/3 Assumes 2D puzzle)
     
 
     #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
      std::cout << "Beginning graph collapse procedure" << std::endl;
      unsigned iteration = 1;
     #endif
-    unsigned neighborhood = 0; // Used to iterate over rows, then columns, then boxes  
     while(!puzzle.isSolved()) {
         const unsigned ***neighborListCursor = neighborhoodList;
         simplex_data_t *dataCursor = data, *updateCursor = update;
 
-        // compute next state
+        // compute state update
         #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
          std::cout << "Iteration " << iteration << ": Computing next states" << std::endl;
          unsigned debug_cell = 0;
@@ -227,23 +181,20 @@ void CollapsingGraphSolver::solve(Puzzle &puzzle) {
             #endif
             *updateCursor = CENTROID;
             for (unsigned neighborhood = 0; neighborhood < 3; neighborhood++) {
-            simplex_data_t temp(ONES);
-            const unsigned *neighborCursor = (*neighborListCursor)[neighborhood];
-            const unsigned *neighborCursorMax = neighborCursor + neighborhoodSize;
-            for ( ; neighborCursor < neighborCursorMax; neighborCursor++) {
-                #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-                std::cout << "\t\tUpdate from neighboring cell " << *neighborCursor << ": " 
-                          << std::to_string(data[*neighborCursor]) << std::endl;
-                #endif
-                temp -= data[*neighborCursor];
-                // updateCursor->constrainSimplex();
+                simplex_data_t temp(ONES);
+                const unsigned *neighborCursor = (*neighborListCursor)[neighborhood];
+                const unsigned *neighborCursorMax = neighborCursor + neighborhoodSize;
+                for ( ; neighborCursor < neighborCursorMax; neighborCursor++) {
+                    #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
+                    std::cout << "\t\tUpdate from neighboring cell " << *neighborCursor << ": " 
+                            << std::to_string(data[*neighborCursor]) << std::endl;
+                    #endif
+                    temp -= data[*neighborCursor];
+                }
+                *updateCursor += temp;
+                *updateCursor -= CENTROID;
             }
-            *updateCursor += temp;
-            *updateCursor -= CENTROID;
-            }
-            // updateCursor->constrainAffine();
-            // updateCursor->constrainSimplex();
-            *updateCursor *= 1 / 3.;
+            *updateCursor *= SCALE_FACTOR;
         }
 
         // update state
@@ -254,8 +205,6 @@ void CollapsingGraphSolver::solve(Puzzle &puzzle) {
         dataCursor = data, updateCursor = update;
         for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++, dataCursor++, updateCursor++) {
             if (puzzle.isConcrete(cell)) continue;
-            // *dataCursor &= *updateCursor;
-            // dataCursor->swap(*updateCursor);
             *dataCursor += *updateCursor;
             dataCursor->constrainSimplex();
             #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
@@ -275,9 +224,6 @@ void CollapsingGraphSolver::solve(Puzzle &puzzle) {
             }
             #endif
         }
-
-        neighborhood++;
-        if (neighborhood == 3) neighborhood = 0;
     }
     
     delete[] data;

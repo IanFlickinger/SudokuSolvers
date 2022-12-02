@@ -58,8 +58,6 @@ class Puzzle {
 		unsigned char getSize() const {return size;}
 		unsigned char getSizeSqrt() const {return sizeSqrt;}
 		unsigned char getSizeSquared() const {return sizeSquared;}
-		// unsigned getNeighborhoodSize() const { return calculateNeighborhoodSize(size); }
-		unsigned computeNeighborhoodSize() const {return 3 * (size - 1) - 2 * (sizeSqrt - 1); }
 
 		// Mutators
 		bool setValue(unsigned char row, unsigned char col, unsigned char val);
@@ -74,6 +72,10 @@ class Puzzle {
 		const unsigned * neighborsOf(unsigned char row, unsigned char col)
 			{ return const_cast<const unsigned *>(neighborsOf(COORDS_TO_CELL(row, col, size))); }
 		const unsigned ** neighborList() { return const_cast<const unsigned **>(neighbors); }
+		const unsigned **neighborhoodsOf(unsigned cell) 
+			{ return const_cast<const unsigned **>(neighborhoods[cell]); }
+		const unsigned **neighborhoodsOf(unsigned char row, unsigned char col) 
+			{ return const_cast<const unsigned **>(neighborhoods[COORDS_TO_CELL(row, col, size)]); }
 		const unsigned *** neighborhoodList() { return const_cast<const unsigned ***>(neighborhoods); }
 
 		// Boolean Queries
@@ -86,6 +88,8 @@ class Puzzle {
 		bool hasConflictAt(unsigned cell) const;
 		bool hasConflictAt(unsigned char row, unsigned char col) const
 			{ return hasConflictAt(COORDS_TO_CELL(row, col, size)); }
+
+		// Integer queries
 		unsigned numConflicts() const;
 		unsigned numConflictsInRow(unsigned char row) const;
 		unsigned numConflictsInCol(unsigned char col) const;
@@ -93,6 +97,7 @@ class Puzzle {
 		unsigned numConflictsAt(unsigned cell) const;
 		unsigned numConflictsAt(unsigned char row, unsigned char col) const
 			{ return numConflictsAt(COORDS_TO_CELL(row, col, size)); }
+		unsigned computeNeighborhoodSize() const {return 3 * (size - 1) - 2 * (sizeSqrt - 1); }
 };
 
 #endif
