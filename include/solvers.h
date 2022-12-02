@@ -27,7 +27,7 @@ class AnnealingSolver : public virtual Solver {
         unsigned iterations;
         unsigned reheats;
     public:
-        AnnealingSolver(unsigned iterations, unsigned reheats);
+        AnnealingSolver(unsigned reheats, unsigned iterations);
         void solve(Puzzle&) override;
         virtual double tempSchedule(unsigned iteration, double temperature) = 0;
 };
@@ -35,7 +35,7 @@ class GeometricAnnealingSolver : public virtual AnnealingSolver {
     private:
         double tempInit, tempFact;
     public: 
-        GeometricAnnealingSolver(unsigned iterations, unsigned reheats, double initialTemp, double tempFactor);
+        GeometricAnnealingSolver(unsigned reheats, unsigned iterations, double initialTemp, double tempFactor);
         inline double tempSchedule(unsigned iteration, double temperature) override;
 };
 

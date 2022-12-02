@@ -49,7 +49,13 @@ Finally, a function `P(t, Δ)` which describes the acceptance probability (a.k.a
 
 It is also often encouraged to sample a *series* of random state changes (markov chain) in between temperature updates. This is the approach taken in [[1]](#references), suggested in [[2]](#references), and implemented here. As recommended in [[1]](#references) the length of this chain is equal to the square of the number of empty cells in the provided puzzle.
 
-Before applying these decisions to the partially-filled Sudoku, the empty values must be initialized. To reduce the search space of the sudoku, each puzzle can be initialized so that every row contains one of every value. Thus, constraint violations only occur in the boxes and columns, and the random state changes can be limited to swapping two cells in the same row.
+Before applying these decisions to the partially-filled Sudoku, the empty values must be initialized. To reduce the search space of the sudoku, each puzzle can be initialized so that every row contains one of every value. Thus, constraint violations only occur in the boxes and columns, and the random state changes can be limited to swapping two cells in the same row. Take the following image as an example.
+
+![Simulated Annealing Example](../../readme-images/sa-example.jpg)
+
+The leftmost sudoku is the original puzzle. First, the algorithm fills each row with the missing values. Then, simulated annealing begins by randomly selecting a row, then selecting two cells within that row that were initially empty, and swapping them according to the acceptance probability and cooling schedule defined prior. 
+
+In the event that the system gets sufficiently "cool" and the puzzle is still not solved, the algorithm "reheats" (reinitializes its temperature) and repeats.
 
 ## Collapsing Graph
 

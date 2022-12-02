@@ -88,7 +88,7 @@ MarkovAnnealingGenerator::MarkovAnnealingGenerator(unsigned size, unsigned ndims
     this->alterCap = (probResample + probAlter) / sum;
 
     // Intialize annealer
-    this->annealer = new Solvers::GeometricAnnealingSolver(1000, 1, 1000, 0.3);
+    this->annealer = new Solvers::GeometricAnnealingSolver(1, 1000, 1000, 0.3);
 
     // Initialize puzzle state
     unsigned sizeSquared = size * size;

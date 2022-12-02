@@ -6,7 +6,7 @@ SET_LOADER(PuzzleLoader("../9x9.csv", 1000000UL, 9));
 /****************************************************************************************/
 ADD_SOLVER(Solvers::DepthFirstSolver(), DepthFirst)
 ADD_SOLVER(Solvers::DepthFirstSolverV1(), DepthFirstV1)
-ADD_SOLVER(Solvers::GeometricAnnealingSolver(50, 10, 2000, 0.2), GeometricAnnealing)
+ADD_SOLVER(Solvers::GeometricAnnealingSolver(10, 50, 2000, 0.2), GeometricAnnealing)
 ADD_SOLVER(Solvers::CollapsingGraphSolver(), CollapsingGraph)
 /****************************************************************************************/
 
