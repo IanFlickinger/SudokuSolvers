@@ -107,12 +107,24 @@ void PuzzleDumper::dump(const Puzzle *puzzles, unsigned num) {
 }
 
 void PuzzleDumper::dump(const Puzzle &puzzle) {
+    #ifdef DEBUG_DATA_CPP
+     std::cout << "PuzzleDumper::dump(Puzzle &)\n";
+    #endif
+    #ifdef DEBUG_DATA_CPP_VERBOSE
+     std::cout << std::setw(50) << std::setfill('=') << "\n";
+    #endif
     std::string values, solution;
     for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++) {
-        std::string str = std::to_string(puzzle.getValue(cell));
-        if (puzzle.isConcrete(cell)) values += str;
-        solution += str;
+        values += std::to_string(puzzle.getValue(cell));
+        solution += std::to_string(puzzle.getSolutionAt(cell));
+        #ifdef DEBUG_DATA_CPP_VERBOSE
+        std::cout << "Cell " << cell << ": value=" << std::to_string(puzzle.getValue(cell))
+                  << "; solution=" << std::to_string(puzzle.getSolutionAt(cell)) << std::endl;
+        #endif
     }
+    #ifdef DEBUG_DATA_CPP_VERBOSE
+    std::cout << "Writing to file: " << values << ',' << solution << std::endl;
+    #endif
     std::ofstream file(this->filepath, std::ios_base::app);
     file << values << ',' << solution << std::endl;
     file.close();

@@ -9,6 +9,17 @@
 
 using namespace Solvers;
 
+/****************************************************************************\
+ * TODO
+ * - Modular acceptance probability function
+ * - Other cooling schedules
+ * - Modular markov chain length
+ * - Normalize cost function to make temperature settings more predictable
+ *   > For example: in the exponential acceptance probability function, 
+ *     P(t, Δ) = exp(Δ / t). If Δ is guaranteed in a certain distribution, 
+ *     setting the temperature based on target acceptance rates is possible.
+\****************************************************************************/
+
 AnnealingSolver::AnnealingSolver(unsigned iterations, unsigned reheats) {
     this->reheats = reheats;
     this->iterations = iterations;

@@ -47,7 +47,9 @@ Finally, a function `P(t, Δ)` which describes the acceptance probability (a.k.a
 
     P(t, Δ) = exp(Δ / t)
 
-It is also often recommended to sample a series of random state changes (markov chain) in between temperature updates. This is the approach taken in [[1]](#references), recommended in [[2]](#references) and implemented here. As recommended in [[1]] the length of this chain is equal to the square of the number of empty cells in the provided puzzle.
+It is also often encouraged to sample a *series* of random state changes (markov chain) in between temperature updates. This is the approach taken in [[1]](#references), suggested in [[2]](#references), and implemented here. As recommended in [[1]](#references) the length of this chain is equal to the square of the number of empty cells in the provided puzzle.
+
+Before applying these decisions to the partially-filled Sudoku, the empty values must be initialized. To reduce the search space of the sudoku, each puzzle can be initialized so that every row contains one of every value. Thus, constraint violations only occur in the boxes and columns, and the random state changes can be limited to swapping two cells in the same row.
 
 ## Collapsing Graph
 

@@ -51,6 +51,10 @@ class Puzzle {
 			{return values[COORDS_TO_CELL(row, col, size)];}
 		unsigned char getValue(unsigned cell) const
 			{return values[cell];}
+		unsigned char getSolutionAt(unsigned char row, unsigned char col) const
+			{return solution[COORDS_TO_CELL(row, col, size)];}
+		unsigned char getSolutionAt(unsigned cell) const
+			{return solution[cell];}
 		unsigned char getSize() const {return size;}
 		unsigned char getSizeSqrt() const {return sizeSqrt;}
 		unsigned char getSizeSquared() const {return sizeSquared;}
