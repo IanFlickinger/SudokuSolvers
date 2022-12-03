@@ -1,14 +1,14 @@
 # set debugging definitions
-set(debug_defs 
-    # DEBUG_BENCHMARK_CPP_VERBOSE
-    # DEBUG_PUZZLE_CPP_VERBOSE
-    # DEBUG_DATA_CPP_VERBOSE
-    # DEBUG_DISPLAY_CPP
-    # DEBUG_BASIC_SOLVERS_CPP_VERBOSE
-    # DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-    # DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
-    # DEBUG_GENERATE_CPP
-)
+# set(debug_defs 
+#     # DEBUG_BENCHMARK_CPP_VERBOSE
+#     # DEBUG_PUZZLE_CPP_VERBOSE
+#     # DEBUG_DATA_CPP_VERBOSE
+#     # DEBUG_DISPLAY_CPP
+#     # DEBUG_BASIC_SOLVERS_CPP_VERBOSE
+#     # DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
+#     # DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
+#     # DEBUG_GENERATE_CPP
+# )
 
 cmake_minimum_required(VERSION 3.5) # minimum specified in gtest build
 
@@ -25,9 +25,9 @@ set(CMAKE_CXX_COMPILER g++)
 
 # visible options
 option(TEST "Compiles the test code instead" OFF)
-option(DEBUG "Enables debugging on all cpp files" OFF)
+# option(DEBUG "Enables debugging on all cpp files" OFF)
 option(GENERATE "Enables sudoku generation" OFF)
-set(options TEST DEBUG GENERATE)
+set(options TEST GENERATE)
 
 # gtest library
 set(GTEST_LOCATION C:/Users/ianfl/Documents/Projects/googletest)
@@ -49,18 +49,18 @@ add_subdirectory(src)
 target_include_directories(sudoku PUBLIC include include/solvers)
 
 # add debug definitions when enabled
-if(${DEBUG})
-    # add nonverbose debugging for any verbose-enabled options
-    foreach(debug_def ${debug_defs}) 
-        if(debug_def MATCHES "_VERBOSE")
-            string(REPLACE "_VERBOSE" "" other_def ${debug_def})
-            list(APPEND debug_defs ${other_def})
-        endif()
-    endforeach(debug_def ${debug_defs})
+# if(${DEBUG})
+#     # add nonverbose debugging for any verbose-enabled options
+#     foreach(debug_def ${debug_defs}) 
+#         if(debug_def MATCHES "_VERBOSE")
+#             string(REPLACE "_VERBOSE" "" other_def ${debug_def})
+#             list(APPEND debug_defs ${other_def})
+#         endif()
+#     endforeach(debug_def ${debug_defs})
 
-    message("Debugging enabled")
-    target_compile_definitions(sudoku PUBLIC ${debug_defs})
-endif()
+#     message("Debugging enabled")
+#     target_compile_definitions(sudoku PUBLIC ${debug_defs})
+# endif()
 
 # branch to test build, or main build
 if (TEST)

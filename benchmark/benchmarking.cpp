@@ -7,6 +7,10 @@
 #include "data.h"
 #include "solvers.h"
 
+#define DEBUG_ENABLED false
+#define DEBUG_VERBOSE_ENABLED false
+#include "debugging.h"
+
 #include "benchmarking.h"
 
 using namespace std;
@@ -85,27 +89,19 @@ void compareSolvers(
 	Solvers::Solver **solvers,
 	time_compare_t &timeCompare
 ) {
-	#ifdef DEBUG_BENCHMARK_CPP
-	 cout << "compareSolvers(Solver&, Solver&, " << numTests << ", " << numPuzzles  << ")" << endl;
-	#endif
-	#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
-	 cout << setw(55) << setfill('=') << "" << endl;
-	#endif
+	DEBUG_FUNC_HEADER("compareSolvers(%d, %d, %d, string*, Solver**, time_compare_t&)", numTests, numPuzzles, numSolvers)
 	Puzzle puzzles[numPuzzles]; 
 
 	unsigned start, stop, duration, numSolved;
 	for (unsigned testNum = 0; testNum < numTests; testNum++) {
 		// Sample puzzles
-		#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
-		 cout << "Sampling " << numPuzzles << " Puzzles" << endl;
-		#endif
+		DEBUG_OUTPUT("Sampling %d Puzzles", numPuzzles)
 		for (Puzzle *ptr = puzzles, *maxPtr = ptr+numPuzzles; ptr < maxPtr; ptr++) {
 			Puzzle temp = SUDOKU_PUZZLE_LOADER.load();
 			ptr->swap(temp);
 		}
-		#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
-		if (numPuzzles == 1) Display::showPuzzle(*puzzles);
-		#endif
+
+		DEBUG_IF_THEN(numPuzzles == 1, Display::showPuzzle(*puzzles))
 
 		// Iterate over solvers
 		for (unsigned solverNum = 0; solverNum < numSolvers; solverNum++) {
@@ -113,18 +109,14 @@ void compareSolvers(
 			std::string &name = names[solverNum];
 
 			// Test solver 
-			#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
-			cout << "Running " << name << " solver" << endl;
-			#endif
+			DEBUG_OUTPUT("Running %s solver", name)
 			start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
 			for (Puzzle *puzzle = puzzles, *puzzleMax = puzzles + numPuzzles; puzzle < puzzleMax; puzzle++) {
 				solver.solve(*puzzle);
 			}
 			stop = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
 			
-			#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
-			if (numPuzzles == 1) Display::showPuzzle(*puzzles);
-			#endif
+			DEBUG_IF_THEN(numPuzzles == 1, Display::showPuzzle(*puzzles))
 
 			// Track stats
 			duration = stop - start;
@@ -138,12 +130,11 @@ void compareSolvers(
 				<< setprecision(5) << duration * 1e-3 << " seconds\n";
 
 			// Reset
-			#ifdef DEBUG_BENCHMARK_CPP_VERBOSE
-			cout << "Resetting Puzzles" << endl;
-			#endif
+			DEBUG_OUTPUT("Resetting Puzzles")
 			for (unsigned i = 0; i < numPuzzles; i++) puzzles[i].reset();
 		}
 	}
+	DEBUG_FUNC_END()
 }
 
 void displayComparisonStats(

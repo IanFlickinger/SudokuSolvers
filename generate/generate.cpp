@@ -10,14 +10,13 @@
 // generate library
 #include "generate.h"
 
-#ifdef DEBUG_GENERATE_CPP
- #include <iostream>
-#endif
+// debugging
+#define DEBUG_ENABLED false
+#define DEBUG_ENABLED_VERBOSE false
+#include "debugging.h"
 
 bool hasUniqueSolution(Puzzle &&puzzle) {
-    #ifdef DEBUG_GENERATE_CPP
-     std::cout << "hasUniqueSolution(Puzzle &&)" << std::endl;
-    #endif
+    DEBUG_OUTPUT("hasUniqueSolution(Puzzle &&)")
     // Initialize stacktracing vectors
     unsigned cell = 0, solutionCount = 0;
     std::vector<unsigned> cells;
@@ -67,9 +66,7 @@ class PuzzleInProgress : public Puzzle {
 };
 
 void SudokuGenerator::fill(Puzzle *puzzles, unsigned num) {
-    #ifdef DEBUG_GENERATE_CPP
-     std::cout << "SudokuGenerator::fill(Puzzle *, " << num << ")" << std::endl;
-    #endif
+    DEBUG_OUTPUT("SudokuGenerator::fill(Puzzle *, %d)", num)
     for (Puzzle *cursor = puzzles, *max = cursor + num; cursor < max; cursor++)
         *cursor = this->build();
 }
@@ -77,11 +74,8 @@ void SudokuGenerator::fill(Puzzle *puzzles, unsigned num) {
 MarkovAnnealingGenerator::MarkovAnnealingGenerator(unsigned size, unsigned ndims, 
     double probResample, double probAlter, double probGenerate) : SudokuGenerator(size, ndims) 
 {
-    #ifdef DEBUG_GENERATE_CPP
-     std::cout << "MarkovAnnealingGenerator::MarkovAnnealingGenerator(" 
-               << size << ", " << ndims << ", " << probResample << ", "
-               << probAlter << ", " << probGenerate << ")" << std::endl;
-    #endif
+    DEBUG_OUTPUT("MarkovAnnealingGenerator::MarkovAnnealingGenerator(%d, %d, %f, %f, %f)", 
+                 size, ndims, probResample, probAlter, probGenerate)
     // Initialize mdp probabilities
     double sum = probResample + probAlter + probGenerate;
     this->resampleCap = probResample / sum;
@@ -102,17 +96,13 @@ MarkovAnnealingGenerator::MarkovAnnealingGenerator(unsigned size, unsigned ndims
 }
 
 MarkovAnnealingGenerator::~MarkovAnnealingGenerator() {
-    #ifdef DEBUG_GENERATE_CPP
-     std::cout << "MarkovAnnealingGenerator::~MarkovAnnealingGenerator()" << std::endl;
-    #endif
+    DEBUG_OUTPUT("MarkovAnnealingGenerator::~MarkovAnnealingGenerator()")
     delete [] this->state;
     delete this->annealer;
 }
 
 Puzzle MarkovAnnealingGenerator::build() {
-    #ifdef DEBUG_GENERATE_CPP
-     std::cout << "MarkovAnnealingGenerator::build()" << std::endl;
-    #endif
+    DEBUG_OUTPUT("MarkovAnnealingGenerator::build()")
     while(true) {
         double r = std::rand() / static_cast<double>(RAND_MAX);
 
@@ -123,9 +113,7 @@ Puzzle MarkovAnnealingGenerator::build() {
 }
 
 void MarkovAnnealingGenerator::sampleSolution() {
-    #ifdef DEBUG_GENERATE_CPP
-     std::cout << "MarkovAnnealingGenerator::sampleSolution()" << std::endl;
-    #endif
+    DEBUG_OUTPUT("MarkovAnnealingGenerator::sampleSolution()")
     // Initial randomization
     unsigned char *values = this->state;
     for (unsigned iter = 0; iter < this->preheatIters; iter++) {
@@ -142,16 +130,12 @@ void MarkovAnnealingGenerator::sampleSolution() {
 }
 
 void MarkovAnnealingGenerator::alterSolution() {
-    #ifdef DEBUG_GENERATE_CPP
-     std::cout << "MarkovAnnealingGenerator::alterSolution()" << std::endl;
-    #endif
+    DEBUG_OUTPUT("MarkovAnnealingGenerator::alterSolution()")
     // TODO
 }
 
 Puzzle MarkovAnnealingGenerator::generatePuzzle() {
-    #ifdef DEBUG_GENERATE_CPP
-     std::cout << "MarkovAnnealingGenerator::generatePuzzle()" << std::endl;
-    #endif
+    DEBUG_OUTPUT("MarkovAnnealingGenerator::generatePuzzle()")
     unsigned sizeSquared = this->size * this->size;
     unsigned char solution[sizeSquared];
     for (unsigned char *val = this->state, *sol = solution, *solMax = sol + sizeSquared; sol < solMax; val++, sol++)

@@ -4,21 +4,16 @@
 #include "display.h"
 
 #include <iostream>
-#ifdef DEBUG_DISPLAY_CPP
- #include <iomanip>
- #include <string>
-#endif
+
+#define DEBUG_ENABLED false
+#define DEBUG_ENABLED_VERBOSE false
+#include "debugging.h"
 
 
 namespace Display {
 
 void showPuzzle(const Puzzle &puzzle) {
-	#ifdef DEBUG_DISPLAY_CPP
-	 std::cout << "Display::showPuzzle(const Puzzle&)" << std::endl;
-	#endif
-	#ifdef DEBUG_DISPLAY_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	#endif
+    DEBUG_FUNC_HEADER("Display::showPuzzle(const Puzzle&)")
     for (int r = 0; r < puzzle.getSize(); r++) {
         if (r % puzzle.getSizeSqrt() == 0) {
             std::cout << '+';
@@ -46,9 +41,7 @@ void showPuzzle(const Puzzle &puzzle) {
         std::cout << '+';
     }
     std::cout << std::endl;
-    #ifdef DEBUG_DISPLAY_CPP_VERBOSE
-     std::cout << std::endl;
-    #endif
+    DEBUG_FUNC_END()
 }
 
 void clear() { 

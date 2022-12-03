@@ -1,11 +1,10 @@
 #include "solvers.h"
 #include "puzzle.h"
 
-#ifdef DEBUG_GRAPH_SOLVERS_CPP
- #include <iostream>
- #include <iomanip>
- #include <string>
-#endif
+
+#define DEBUG_ENABLED false
+#define DEBUG_ENABLED_VERBOSE false
+#include "debugging.h"
 
 using namespace Solvers;
 
@@ -118,20 +117,13 @@ namespace std {
 }
 
 void CollapsingGraphSolver::solve(Puzzle &puzzle) {
-    #ifdef DEBUG_GRAPH_SOLVERS_CPP
-     std::cout << "CollapsingGraphSolver::solve(Puzzle &puzzle)\n" << std::endl;
-    #endif
-    #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-     std::cout << std::setw(55) << std::setfill('=') << "\n" << std::endl;
-    #endif
+    DEBUG_FUNC_HEADER("CollapsingGraphSolver::solve(Puzzle &puzzle)")
 
     const unsigned ***neighborhoodList = puzzle.neighborhoodList();
     const unsigned ***neighborhoodListMax = neighborhoodList + puzzle.getSizeSquared();
     const unsigned neighborhoodSize = puzzle.getSize() - 1;
 
-    #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-     std::cout << "Initializing simplex data" << std::endl;
-    #endif
+    DEBUG_OUTPUT("Initializing simplex data")
 
     const double simplexInitVal = 1. / puzzle.getSize();
 
@@ -148,9 +140,7 @@ void CollapsingGraphSolver::solve(Puzzle &puzzle) {
             unsigned char value = puzzle.getValue(cell);
             dataCursor->collapseTo(value);
         }
-        #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-         std::cout << "\tSimplex data for cell " << cell << ": " << std::to_string(*dataCursor) << std::endl;
-        #endif
+        DEBUG_OUTPUT("Simplex data for cell %d: %s", cell, std::to_string(*dataCursor))
     }
 
     const simplex_data_t ONES(puzzle.getSize(), 1.);
@@ -158,72 +148,142 @@ void CollapsingGraphSolver::solve(Puzzle &puzzle) {
     const double SCALE_FACTOR = 1. / 3; // 1 / number of neighborhoods (1/3 Assumes 2D puzzle)
     
 
-    #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-     std::cout << "Beginning graph collapse procedure" << std::endl;
-     unsigned iteration = 1;
-    #endif
+    DEBUG_OUTPUT("Beginning graph collapse procedure")
+    DEBUG_STATEMENT(unsigned iteration = 1;)
     while(!puzzle.isSolved()) {
         const unsigned ***neighborListCursor = neighborhoodList;
         simplex_data_t *dataCursor = data, *updateCursor = update;
 
         // compute state update
-        #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-         std::cout << "Iteration " << iteration << ": Computing next states" << std::endl;
-         unsigned debug_cell = 0;
-        #endif
+        DEBUG_OUTPUT("Iteration %d: Computing next states", iteration)
+        DEBUG_INDENT()
+        DEBUG_STATEMENT(unsigned debug_cell = 0;)
         for (unsigned cell = 0 ; dataCursor < dataCursorCeiling; cell++, neighborListCursor++, dataCursor++, updateCursor++) {
-            #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-             debug_cell++;
-            #endif
+            DEBUG_STATEMENT(debug_cell++;)
             if (puzzle.isConcrete(cell)) continue;
-            #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-             std::cout << "\tComputing update for cell " << debug_cell-1 << ": "<< std::to_string(*dataCursor) << std::endl;
-            #endif
+            DEBUG_OUTPUT("Computing update for cell %d: %s", debug_cell-1, std::to_string(*dataCursor))
+            DEBUG_INDENT()
             *updateCursor = CENTROID;
             for (unsigned neighborhood = 0; neighborhood < 3; neighborhood++) {
                 simplex_data_t temp(ONES);
                 const unsigned *neighborCursor = (*neighborListCursor)[neighborhood];
                 const unsigned *neighborCursorMax = neighborCursor + neighborhoodSize;
                 for ( ; neighborCursor < neighborCursorMax; neighborCursor++) {
-                    #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-                    std::cout << "\t\tUpdate from neighboring cell " << *neighborCursor << ": " 
-                            << std::to_string(data[*neighborCursor]) << std::endl;
-                    #endif
+                    DEBUG_OUTPUT("Update from neighboring cell %d: %s", *neighborCursor, std::to_string(data[*neighborCursor]))
                     temp -= data[*neighborCursor];
                 }
                 *updateCursor += temp;
                 *updateCursor -= CENTROID;
             }
+            DEBUG_OUTDENT()
             *updateCursor *= SCALE_FACTOR;
         }
+        DEBUG_OUTDENT()
 
         // update state
-        #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-         std::cout << "Iteration " << iteration << ": Updating states" << std::endl;
-         iteration++;
-        #endif
+        DEBUG_OUTPUT("Iteration %d: Updating states", iteration)
+        DEBUG_INDENT()
+        DEBUG_STATEMENT(iteration++;)
         dataCursor = data, updateCursor = update;
         for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++, dataCursor++, updateCursor++) {
             if (puzzle.isConcrete(cell)) continue;
             *dataCursor += *updateCursor;
             dataCursor->constrainSimplex();
-            #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-             simplex_data_t mem(*dataCursor);
-            #endif
+            DEBUG_STATEMENT(simplex_data_t mem(*dataCursor);)
             
-            if (dataCursor->collapse()) 
-            #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
-            {
-                std::cout << "\tCollapsing cell at row " << std::to_string(cell / puzzle.getSize())
-                          << " and column " << std::to_string(cell % puzzle.getSize())
-                          << " to " << std::to_string(dataCursor->value) 
-                          << " from " << std::to_string(mem) << std::endl;
-            #endif
+            if (dataCursor->collapse()) {
+                DEBUG_OUTPUT("Collapsing cell at row %d and column %d to %d from %s", cell / puzzle.getSize(), cell % puzzle.getSize(), dataCursor->value, std::to_string(mem))
                 puzzle.setValue(cell, dataCursor->value);
-            #ifdef DEBUG_GRAPH_SOLVERS_CPP_VERBOSE
             }
-            #endif
         }
+        DEBUG_OUTDENT()
+    }
+    
+    delete[] data;
+    delete[] update;
+}
+
+void CollapsingGraphSolverV1::solve(Puzzle &puzzle) {
+    DEBUG_FUNC_HEADER("CollapsingGraphSolverV1::solve(Puzzle &puzzle)")
+
+    const unsigned ***neighborhoodList = puzzle.neighborhoodList();
+    const unsigned ***neighborhoodListMax = neighborhoodList + puzzle.getSizeSquared();
+    const unsigned neighborhoodSize = puzzle.getSize() - 1;
+
+    DEBUG_OUTPUT("Initializing simplex data")
+
+    const double simplexInitVal = 1. / puzzle.getSize();
+
+    simplex_data_t *data = new simplex_data_t[puzzle.getSizeSquared()];
+    simplex_data_t *update = new simplex_data_t[puzzle.getSizeSquared()];
+    simplex_data_t *dataCursorCeiling = data + puzzle.getSizeSquared();
+    unsigned cell = 0;
+    for (simplex_data_t *dataCursor = data, *updateCursor = update; 
+        dataCursor < dataCursorCeiling; dataCursor++, updateCursor++, cell++
+    ) {
+        dataCursor->init(puzzle.getSize(), simplexInitVal);
+        updateCursor->init(puzzle.getSize(), simplexInitVal);
+        if (puzzle.isConcrete(cell)) {
+            unsigned char value = puzzle.getValue(cell);
+            dataCursor->collapseTo(value);
+        }
+        DEBUG_OUTPUT("Simplex data for cell %d: %s", cell, std::to_string(*dataCursor))
+    }
+
+    const simplex_data_t ONES(puzzle.getSize(), 1.);
+    const simplex_data_t CENTROID(puzzle.getSize(), simplexInitVal);
+    const double SCALE_FACTOR = 1. / 3; // 1 / number of neighborhoods (1/3 Assumes 2D puzzle)
+    
+
+    DEBUG_OUTPUT("Beginning graph collapse procedure")
+    DEBUG_STATEMENT(unsigned iteration = 1)
+    while(!puzzle.isSolved()) {
+        const unsigned ***neighborListCursor = neighborhoodList;
+        simplex_data_t *dataCursor = data, *updateCursor = update;
+
+        // compute state update
+        DEBUG_OUTPUT("Iteration %d: Computing next states", iteration)
+        DEBUG_INDENT()
+        DEBUG_STATEMENT(unsigned debug_cell = 0)
+        for (unsigned cell = 0 ; dataCursor < dataCursorCeiling; cell++, neighborListCursor++, dataCursor++, updateCursor++) {
+            DEBUG_STATEMENT(debug_cell++)
+            if (puzzle.isConcrete(cell)) continue;
+            DEBUG_OUTPUT("Computing update for cell %d: %s", debug_cell-1, std::to_string(*dataCursor))
+            DEBUG_INDENT()
+            *updateCursor = CENTROID;
+            for (unsigned neighborhood = 0; neighborhood < 3; neighborhood++) {
+                simplex_data_t temp(ONES);
+                const unsigned *neighborCursor = (*neighborListCursor)[neighborhood];
+                const unsigned *neighborCursorMax = neighborCursor + neighborhoodSize;
+                for ( ; neighborCursor < neighborCursorMax; neighborCursor++) {
+                    DEBUG_OUTPUT("Update from neighboring cell %d: %s", *neighborCursor, std::to_string(data[*neighborCursor]))
+                    temp -= data[*neighborCursor];
+                }
+                *updateCursor += temp;
+                *updateCursor -= CENTROID;
+            }
+            DEBUG_OUTDENT()
+            *updateCursor *= SCALE_FACTOR;
+        }
+        DEBUG_OUTDENT()
+
+        // update state
+        DEBUG_OUTPUT("Iteration %d: Updating states", iteration)
+        DEBUG_INDENT()
+        DEBUG_STATEMENT(iteration++)
+        dataCursor = data, updateCursor = update;
+        for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++, dataCursor++, updateCursor++) {
+            if (puzzle.isConcrete(cell)) continue;
+            *dataCursor += *updateCursor;
+            dataCursor->constrainSimplex();
+            DEBUG_STATEMENT(simplex_data_t mem(*dataCursor))
+            
+            if (dataCursor->collapse()) {
+                DEBUG_OUTPUT("Collapsing cell at row %d and column %d to %d from %s", cell / puzzle.getSize(), cell % puzzle.getSize(), dataCursor->value, std::to_string(mem))
+                puzzle.setValue(cell, dataCursor->value);
+            }
+        }
+        DEBUG_OUTDENT()
     }
     
     delete[] data;

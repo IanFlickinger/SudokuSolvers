@@ -2,10 +2,10 @@
 #include <fstream>
 #include <cmath>
 #include <string>
-#ifdef DEBUG_PUZZLE_CPP
- #include <iostream>
- #include <iomanip>
-#endif
+
+#define DEBUG_ENABLED false
+#define DEBUG_ENABLED_VERBOSE false
+#include "debugging.h"
 
 template <typename Key, typename Val> 
 struct node_t {
@@ -76,12 +76,7 @@ bool isSudokuSolution(unsigned char size, unsigned char* solution) {
 }
 
 bool sudokuHasConflict(unsigned char size, unsigned char* solution) {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "sudokuHasConflict(" << static_cast<int>(size) << ", unsigned char*)" << std::endl;
-	#endif
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	#endif
+	DEBUG_FUNC_HEADER("sudokuHasConflict(%d, unsigned char*)", size)
 	unsigned sizeSquared = size * size;
 	unsigned char sizeSqrt = perfectSqrt(size);
 	// Check rows for duplicates
@@ -89,39 +84,25 @@ bool sudokuHasConflict(unsigned char size, unsigned char* solution) {
 		unsigned rowOffset = row * size;
 		unsigned char vals[size+1] = {0};
 		for (unsigned cell = rowOffset; cell < rowOffset + size; cell++)
-			if (vals[solution[cell]]++ > 0 && solution[cell] != 0) 
-				#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-				{
-					std::cout << "Row conflict found: multiple " << std::to_string(solution[cell]) << " instances in row " 
-						 << std::to_string(row) << '\n' << std::endl;
+			if (vals[solution[cell]]++ > 0 && solution[cell] != 0) {
+					DEBUG_OUTPUT("Row conflict found: multiple %d instances in row %d", solution[cell], row)
+					DEBUG_FUNC_END()
 					return true;
 				}
-				#else
-					return true;
-				#endif
 	}
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << "No row conflicts found\n";
-	#endif
+	DEBUG_OUTPUT("No row conflicts found")
 
 	// Check cols for duplicates
 	for (unsigned char col = 0; col < size; col++) {
 		unsigned char vals[size+1] = {0};
 		for (unsigned cell = col; cell < sizeSquared; cell += size)
-			if (vals[solution[cell]]++ > 0 && solution[cell] != 0)
-				#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-				{
-					std::cout << "Column conflict found: multiple " << std::to_string(solution[cell]) << " instances in column " 
-						 << std::to_string(col) << '\n' << std::endl;
+			if (vals[solution[cell]]++ > 0 && solution[cell] != 0) {
+					DEBUG_OUTPUT("Column conflict found: multiple %d instances in column %d", solution[cell], col)
+					DEBUG_FUNC_END()
 					return true;
 				}
-				#else
-					return true;
-				#endif
 	}
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << "No column conflicts found\n";
-	#endif
+	DEBUG_OUTPUT("No column conflicts found")
 
 	// Check boxes for duplicates
 	for (unsigned char majorRow = 0, majorCol = 0; majorRow < sizeSqrt; 
@@ -132,24 +113,20 @@ bool sudokuHasConflict(unsigned char size, unsigned char* solution) {
 		for (unsigned cell = boxOffset, minorCol = 0; cell < boxOffset + sizeSqrt * size; 
 			minorCol = (minorCol + 1) % sizeSqrt, cell = cell + 1 + (size - sizeSqrt) * (minorCol == 0)
 		) 
-			if (vals[solution[cell]]++ > 0 && solution[cell] != 0)
-				#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-				{
-					std::cout << "Box conflict found: multiple " << std::to_string(solution[cell]) << " instances in box " 
-						 << std::to_string(majorRow) << std::to_string(majorCol) << '\n' << std::endl;
+			if (vals[solution[cell]]++ > 0 && solution[cell] != 0){
+					DEBUG_OUTPUT("Box conflict found: multiple %d instances in box row %d and column %d", solution[cell], majorRow, majorCol)
+					DEBUG_FUNC_END()
 					return true;
 				}
-				#else
-					return true;
-				#endif
 	}
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << "No box conflicts found\n" << std::endl;
-	#endif
+	DEBUG_OUTPUT("No box conflicts found")
+
+	DEBUG_FUNC_END()
 	return false;
 }
 
 void Puzzle::initializeSize(unsigned char size) {
+	DEBUG_FUNC_HEADER("Puzzle::initializeSize(%d)", size)
 	this->size = size;
 	this->sizeSqrt = perfectSqrt(size);
 	this->sizeSquared = size * size;
@@ -159,9 +136,7 @@ void Puzzle::initializeSize(unsigned char size) {
 
 	// BUILD NEIGHBORHOODS
 	// TODO: several optimizations are possible
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-		std::cout << "Building neighborhoods" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Building neighborhoods")
 	unsigned neighborSize = this->computeNeighborhoodSize();
 	unsigned **neighbors = new unsigned*[this->sizeSquared];
 	for (unsigned **i = neighbors, **iMax = i + this->sizeSquared; i < iMax; i++) *i = new unsigned[neighborSize];
@@ -183,9 +158,8 @@ void Puzzle::initializeSize(unsigned char size) {
 	for (unsigned char row = 0, col = 0, majorRow = 0, majorCol = 0, minorRow = 0, minorCol = 0; 
 		cell < this->sizeSquared; cell++
 	) {
-		#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-			std::cout << "Cell " << cell << ":" << std::endl;
-		#endif
+		DEBUG_OUTPUT("Cell %d:", cell)
+		DEBUG_INDENT()
 		unsigned neighborOffset = 0;
 
 		// build row neighborhood
@@ -195,9 +169,7 @@ void Puzzle::initializeSize(unsigned char size) {
 				neighborhoods[cell][0][i++] = otherCell;
 			}
 		}
-		#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-			std::cout << "\tRow neighborhood complete" << std::endl;
-		#endif
+		DEBUG_OUTPUT("Row neighborhood complete")
 
 		// build col neighborhood
 		for (unsigned otherCell = col, i = 0; otherCell < this->sizeSquared; otherCell += this->size)
@@ -205,9 +177,7 @@ void Puzzle::initializeSize(unsigned char size) {
 				neighbors[cell][neighborOffset++] = otherCell;
 				neighborhoods[cell][1][i++] = otherCell;
 			}
-		#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-			std::cout << "\tColumn neighborhood complete" << std::endl;
-		#endif
+		DEBUG_OUTPUT("Column neighborhood complete")
 		
 		// build box neighborhood
 		unsigned char otherMinorRow = 0, otherMinorCol = 0;
@@ -225,9 +195,8 @@ void Puzzle::initializeSize(unsigned char size) {
 				neighborhoods[cell][2][i++] = otherCell;
 			}
 		}
-		#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-			std::cout << "\tBox neighborhood complete" << std::endl;
-		#endif
+		DEBUG_OUTPUT("Box neighborhood complete")
+		DEBUG_OUTDENT()
 
 		// update loop variants
 		minorCol++; col++;
@@ -253,12 +222,12 @@ void Puzzle::initializeSize(unsigned char size) {
 	}
 	this->neighbors = neighbors;
 	this->neighborhoods = neighborhoods;
+
+	DEBUG_FUNC_END()
 }
 
 Puzzle::Puzzle() {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::Puzzle()" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Puzzle::Puzzle()")
 	// setting size to 0 prevents memory errors in array access functions
 	this->sizeSqrt = 0;
 	this->size = 0;
@@ -271,186 +240,136 @@ Puzzle::Puzzle() {
 }
 
 Puzzle::Puzzle(unsigned char size) {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::Puzzle(" << static_cast<int>(size) << ", unsigned char*)" << std::endl;
-	#endif
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	#endif
+	DEBUG_FUNC_HEADER("Puzzle::Puzzle(%d)", size)
 	this->initializeSize(size);
 	for (int cell = 0; cell < this->sizeSquared; cell++) {
+		DEBUG_STATEMENT(unsigned r = cell / size)
+		DEBUG_STATEMENT(unsigned c = cell % size)
+		DEBUG_OUTPUT("Assigning 0 to row %d and column %d", r, c)
 		this->values[cell] = 0;
 		this->concrete[cell] = false;
-		#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-		 unsigned r = cell / size;
-		 unsigned c = cell % size;
-		 std::cout << "Assigning " << 0
-		      << " to row " << r << " and column " << c << std::endl;
-		 std::cout << "\tvalues[" << r << "][" << c << "] == " << static_cast<int>(this->values[cell]) << std::endl;
-		 std::cout << "\tconcrete[" << r << "][" << c << "] == " << this->concrete[cell] << std::endl;
-		#endif
+
+		DEBUG_INDENT()
+		  DEBUG_OUTPUT("values[%d][%d] == %d", r, c, this->values[cell])
+		  DEBUG_OUTPUT("concrete[%d][%d] == %s", r, c, this->concrete[cell] ? "true" : "false")
+		DEBUG_OUTDENT()
 	}
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::endl;
-	#endif
+	DEBUG_FUNC_END()
 }
 
 Puzzle::Puzzle(unsigned char size, unsigned char *values) {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::Puzzle(" << static_cast<int>(size) << ", unsigned char*)" << std::endl;
-	#endif
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	#endif
+	DEBUG_FUNC_HEADER("Puzzle::Puzzle(%d, unsigned char*)", size)
 	this->initializeSize(size);
 
 	for (int cell = 0; cell < this->sizeSquared; cell++) {
 		unsigned char value = values[cell];
 		if (value > size) value = 0;
+
+		DEBUG_STATEMENT(unsigned r = cell / size)
+		DEBUG_STATEMENT(unsigned c = cell % size)
+		DEBUG_OUTPUT("Assigning %d to row %d and column %d", value, r, c)
 		this->values[cell] = value;
 		this->concrete[cell] = (value != 0);
-		#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-		unsigned r = cell / size;
-		unsigned c = cell % size;
-		std::cout << "Assigning " << static_cast<unsigned>(value) 
-			<< " to row " << r << " and column " << c << std::endl;
-		std::cout << "\tvalues[" << r << "][" << c << "] == " << static_cast<int>(this->values[cell]) << std::endl;
-		std::cout << "\tconcrete[" << r << "][" << c << "] == " << this->concrete[cell] << std::endl;
-		#endif
+
+		DEBUG_INDENT()
+		  DEBUG_OUTPUT("values[%d][%d] == %d", r, c, this->values[cell])
+		  DEBUG_OUTPUT("concrete[%d][%d] == %s", r, c, this->concrete[cell] ? "true" : "false")
+		DEBUG_OUTDENT()
 	}
 
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::endl;
-	#endif
+	DEBUG_FUNC_END()
 }
 
 Puzzle::Puzzle(unsigned char size, unsigned char **values) {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::Puzzle(unsigned char[][])" << std::endl;
-	#endif
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	#endif
+	DEBUG_FUNC_HEADER("Puzzle::Puzzle(%d, unsigned char**)", size)
 	this->initializeSize(size);
 
 	for (int cell = 0, r = 0, c = 0; r < size; cell++, c = (c+1) % size, r = r+(c==0)) {
 		unsigned char value = values[r][c];
 		value = value > size ? 0 : value;
+
+		DEBUG_OUTPUT("Assigning %d to row %d and column %d", value, r, c)
 		this->values[cell] = value;
 		this->concrete[cell] = (value != 0);
-		#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-		 std::cout << "Assigning " << static_cast<unsigned>(value) 
-		      << " to row " << r << " and column " << c << std::endl;
-		 std::cout << "\tvalues[" << r << "][" << c << "] == " << static_cast<int>(this->values[cell]) << std::endl;
-		 std::cout << "\tconcrete[" << r << "][" << c << "] == " << this->concrete[cell] << std::endl;
-		#endif
-
+		
+		DEBUG_INDENT()
+		  DEBUG_OUTPUT("values[%d][%d] == %d", r, c, this->values[cell])
+		  DEBUG_OUTPUT("concrete[%d][%d] == %s", r, c, this->concrete[cell] ? "true" : "false")
+		DEBUG_OUTDENT()
 	}
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::endl;
-	#endif
+
+	DEBUG_FUNC_END()
 }
 
 Puzzle::Puzzle(const Puzzle &other) {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::Puzzle(const Puzzle &other)" << std::endl;
-	#endif
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	#endif
+	DEBUG_FUNC_HEADER("Puzzle::Puzzle(Puzzle&)")
 	this->initializeSize(other.size);
 	// TODO: handle neighbors for efficiency?
 	// TODO: handle solution
 	for (int cell = 0; cell < this->sizeSquared; cell++) {
-		#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-		 unsigned r = cell / this->size;
-		 unsigned c = cell % this->size;
-		 std::cout << "Assigning " << static_cast<unsigned>(other.values[cell]) 
-		      << " to row " << r << " and column " << c << std::endl;
-		#endif
+		DEBUG_STATEMENT(unsigned r = cell / size)
+		DEBUG_STATEMENT(unsigned c = cell % size)
+		DEBUG_OUTPUT("Assigning %d to row %d and column %d", other.values[cell], r, c)
 		this->values[cell] = other.values[cell];
 		this->concrete[cell] = other.concrete[cell];
-		#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-		 std::cout << "\tvalues[" << r << "][" << c << "] == " << static_cast<int>(this->values[cell]) << std::endl;
-		 std::cout << "\tconcrete[" << r << "][" << c << "] == " << this->concrete[cell] << std::endl;
-		#endif
+		
+		DEBUG_INDENT()
+		  DEBUG_OUTPUT("values[%d][%d] == %d", r, c, this->values[cell])
+		  DEBUG_OUTPUT("concrete[%d][%d] == %s", r, c, this->concrete[cell] ? "true" : "false")
+		DEBUG_OUTDENT()
 	}
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::endl;
-	#endif
+
+	DEBUG_FUNC_END()
 }
 
 bool Puzzle::setValue(unsigned char row, unsigned char col, unsigned char val) {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::setValue(" << static_cast<int>(row) << ", " << static_cast<int>(col) 
-	      << ", " << static_cast<int>(val) << ")" << std::endl;
-	#endif
+	DEBUG_FUNC_HEADER("Puzzle::setValue(%d, %d, %d)", row, col, val)
 	unsigned cell = COORDS_TO_CELL(row, col, this->size);
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	 if (concrete[cell]) std::cout << "Cell is concrete! Cannot reassign!\n" << std::endl;
-	 if (val > this->size) std::cout << "ERROR: Value " << static_cast<int>(val) << " is out of range!\n" << std::endl;
-	#endif
-	if (concrete[cell] || val > this->size) 
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	{
-		std::cout << std::endl;
+
+	DEBUG_OUTPUT_IF(concrete[cell], "Cell is concrete! Cannot reassign!")
+	DEBUG_OUTPUT_IF(val > this->size, "ERROR: Value %d is out of range!", val)
+	if (concrete[cell] || val > this->size) {
+		DEBUG_FUNC_END()
 		return false;
 	}
-	#else
-		return false;
-	#endif
 	this->values[cell] = val;
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << "New value at row " << static_cast<int>(row) << " and column " << static_cast<int>(col) 
-	      << ": " << static_cast<int>(this->values[cell]) << "\n\n";
-	#endif
+
+	DEBUG_OUTPUT("New value at row %d and column %d: %d", row, col, this->values[cell])
+	DEBUG_FUNC_END()
 	return true;
 }
 
 bool Puzzle::setValue(unsigned cell, unsigned char val) {
+	DEBUG_FUNC_HEADER("Puzzle::setValue(%d, %d", cell, val)
 	#ifdef DEBUG_PUZZLE_CPP
 	 std::cout << "Puzzle::setValue(" << cell << ", " << static_cast<int>(val) << ")" << std::endl;
 	#endif
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	 if (concrete[cell]) std::cout << "Cell is concrete! Cannot reassign!" << std::endl;
-	 if (val > this->size) std::cout << "ERROR: Value " << static_cast<int>(val) << " is out of range!" << std::endl;
-	 if (!concrete[cell] && val <= this->size) std::cout << "Reassigning value..." << std::endl;
-	#endif
-	if (concrete[cell] || val > this->size) 
+	DEBUG_OUTPUT_IF(concrete[cell], "Cell is concrete! Cannot reassign!")
+	DEBUG_OUTPUT_IF(val > this->size, "ERROR: Value %d is out of range!", val)
+	if (concrete[cell] || val > this->size) {
+		DEBUG_FUNC_END()
 		return false;
+	}
+	DEBUG_OUTPUT("Reassigning value...")
 	this->values[cell] = val;
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << "New value at row " << cell / size << " and column " << cell % size
-	      << ": " << static_cast<int>(this->values[cell]) << "\n" << std::endl;
-	#endif
+
+	DEBUG_OUTPUT("New value at row %d and column %d: %d", cell / size, cell % size, this->values[cell])
+	DEBUG_FUNC_END()
 	return true;
 }
 
 bool Puzzle::setSolution(unsigned char *solution, bool copy) {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::setSolution(unsigned char*, copy=" << std::to_string(copy) << ")" << std::endl;
-	#endif
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	#endif
+	DEBUG_FUNC_HEADER("Puzzle::setSolution(unsigned char*, copy=%s)", copy ? "true": "false")
+
 	// No solution overriding allowed at this point: should be unnecessary
 	// TODO: Macro which fail conditions with explanations?
 	// TODO: Reject if solution does not match values?
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	if (this->solution != nullptr) {
-		std::cout << "ERROR: Solution override request denied\n" << std::endl;
+	DEBUG_OUTPUT_IF(this->solution != nullptr, "ERROR: Solution override request denied")
+	DEBUG_OUTPUT_IF(!isSudokuSolution(this->size, solution), "ERROR: Invalid solution provided")
+	if (this->solution != nullptr || !isSudokuSolution(this->size, solution)) {
+		DEBUG_FUNC_END()
 		return false;
 	}
-	if (!isSudokuSolution(this->size, solution)) {
-		std::cout << "ERROR: Invalid solution provided\n" << std::endl;
-		return false;
-	}
-	#else
-	if (this->solution != nullptr or !isSudokuSolution(this->size, solution)) 
-		return false;
-	#endif
 	if (copy) {
 		this->solution = new unsigned char[this->sizeSquared];
 		for (unsigned cell = 0; cell < this->sizeSquared; cell++) {
@@ -458,59 +377,36 @@ bool Puzzle::setSolution(unsigned char *solution, bool copy) {
 		}
 	}
 	else this->solution = solution;
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout  << std::endl;
-	#endif
-	return true;
-}
-
-bool Puzzle::setSolution(unsigned char **solution) {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::setSolution(unsigned char**)" << std::endl;
-	#endif
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	#endif
-	// No solution overriding allowed at this point: should be unnecessary
-	if (this->solution != nullptr) return false;
-	this->solution = new unsigned char[this->sizeSquared];
-	for (unsigned cell = 0, row = 0, col = 0; cell < this->sizeSquared; 
-			col = (col + 1) % this->size, row += (col == 0), cell++
-		) this->solution[cell] = solution[row][col];
-	if (!isSudokuSolution(this->size, this->solution)) {
-		delete[] this->solution;
-		this->solution = nullptr;
-	}
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout  << std::endl;
-	#endif
+	
+	DEBUG_FUNC_END()
 	return true;
 }
 
 void Puzzle::reset() {
+	DEBUG_OUTPUT("Puzzle::reset()")
 	for (unsigned cell = 0; cell < this->sizeSquared; cell++) this->values[cell] *= this->concrete[cell];
 }
 
 bool Puzzle::isSolved() const {
+	DEBUG_OUTPUT("Puzzle::isSolved()")
 	if (solution == nullptr) return isSudokuSolution(size, values);
-	for (unsigned cell = 0; cell < sizeSquared; cell++) 
+	for (unsigned cell = 0; cell < sizeSquared; cell++)
 		if (values[cell] != solution[cell]) return false;
 	return true;
 }
 
 bool Puzzle::matchesSolution() const {
+	DEBUG_OUTPUT("Puzzle::matchesSolution()")
 	// Returns true if all nonempty cells match provided solution
 	// Currently returns false if no solution is provided
 	if (solution == nullptr) return false;
-	for (unsigned cell = 0; cell < sizeSquared; cell++) 
+	for (unsigned cell = 0; cell < sizeSquared; cell++)
 		if (values[cell] != solution[cell] && values[cell] != 0) return false;
 	return true;
 }
 
 bool Puzzle::hasConflictInRow(unsigned char row) const {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::hasConflictInRow(" << std::to_string(row) << ")" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Puzzle::hasConflictInRow(%d)", row)
 	unsigned rowOffset = row * size;
 	unsigned char vals[size+1] = {0};
 	for (unsigned char cell = rowOffset; cell < rowOffset + size; cell++)
@@ -519,9 +415,7 @@ bool Puzzle::hasConflictInRow(unsigned char row) const {
 }
 
 bool Puzzle::hasConflictInCol(unsigned char col) const {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::hasConflictInCol(" << std::to_string(col) << ")" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Puzzle::hasConflictInCol(%d)", col)
 	unsigned char vals[size+1] = {0};
 	for (unsigned char cell = col; cell < sizeSquared; cell += size)
 		if (vals[values[cell]]++ > 0 && values[cell] != 0) return true;
@@ -529,9 +423,7 @@ bool Puzzle::hasConflictInCol(unsigned char col) const {
 }
 
 bool Puzzle::hasConflictInBox(unsigned char majorRow, unsigned char majorCol) const {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::hasConflictInBox(" << std::to_string(majorRow) << ", " << std::to_string(majorCol) << ")" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Puzzle::hasConflictInBox(%d, %d)", majorRow, majorCol)
 	unsigned char vals[size+1] = {0};
 	unsigned majorSize = size * sizeSqrt;
 	unsigned boxOffset = majorRow * majorSize + majorCol * sizeSqrt;
@@ -543,9 +435,7 @@ bool Puzzle::hasConflictInBox(unsigned char majorRow, unsigned char majorCol) co
 }
 
 bool Puzzle::hasConflictAt(unsigned cell) const {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::hasConflictAt(" << cell << ")" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Puzzle::hasConflictAt(%d)", cell)
 	// get cell value
 	unsigned value = this->values[cell];
 
@@ -564,6 +454,7 @@ bool Puzzle::hasConflictAt(unsigned cell) const {
 }
 
 unsigned Puzzle::numConflictsInRow(unsigned char row) const {
+	DEBUG_OUTPUT("Puzzle::numConflictsInRow(%d)", row)
 	unsigned conflicts = 0;
 	unsigned rowOffset = row * size;
 	unsigned char vals[size+1] = {0};
@@ -573,6 +464,7 @@ unsigned Puzzle::numConflictsInRow(unsigned char row) const {
 }
 
 unsigned Puzzle::numConflictsInCol(unsigned char col) const {
+	DEBUG_OUTPUT("Puzzle::numConflictsInCol(%d)", col)
 	unsigned conflicts = 0;
 	unsigned char vals[size+1] = {0};
 	for (unsigned char cell = col; cell < sizeSquared; cell += size)
@@ -581,6 +473,7 @@ unsigned Puzzle::numConflictsInCol(unsigned char col) const {
 }
 
 unsigned Puzzle::numConflictsInBox(unsigned char majorRow, unsigned char majorCol) const {
+	DEBUG_OUTPUT("Puzzle::numConflictsInBox(%d, %d)", majorRow, majorCol)
 	unsigned conflicts = 0;
 	unsigned char vals[size+1] = {0};
 	unsigned majorSize = size * sizeSqrt;
@@ -593,6 +486,7 @@ unsigned Puzzle::numConflictsInBox(unsigned char majorRow, unsigned char majorCo
 }
 
 unsigned Puzzle::numConflictsAt(unsigned cell) const {
+	DEBUG_OUTPUT("Puzzle::numConflictsAt(%d)", cell)
 	unsigned value = this->values[cell], conflicts = 0;
 	unsigned *neighbor = this->neighbors[cell];
 	unsigned *neighborCeiling = neighbor + this->computeNeighborhoodSize();
@@ -602,6 +496,7 @@ unsigned Puzzle::numConflictsAt(unsigned cell) const {
 }
 
 unsigned Puzzle::numConflicts() const {
+	DEBUG_OUTPUT("Puzzle::numConflicts()")
 	unsigned conflicts = 0;
 	for (unsigned char row = 0; row < size; row++) {
 		unsigned rowOffset = row * size;
@@ -629,9 +524,7 @@ unsigned Puzzle::numConflicts() const {
 }
 
 void Puzzle::swap(Puzzle &other) {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::swap(Puzzle&)" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Puzzle::swap()")
 	std::swap(size, other.size);
 	std::swap(sizeSqrt, other.sizeSqrt);
 	std::swap(sizeSquared, other.sizeSquared);
@@ -643,43 +536,23 @@ void Puzzle::swap(Puzzle &other) {
 }
 
 Puzzle::~Puzzle() {
-	#ifdef DEBUG_PUZZLE_CPP
-	 std::cout << "Puzzle::~Puzzle()" << std::endl;
-	#endif
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 std::cout << std::setw(55) << std::setfill('=') << "" << std::endl;
-	#endif
+	DEBUG_FUNC_HEADER("Puzzle::~Puzzle()")
 
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	 if (!this->size) std::cout << "Puzzle not yet initialized... returning early" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Puzzle not yet initialized... returning early")
 	if (this->values == nullptr) return;
 
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	std::cout << "Deleting values and concrete arrays" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Deleting values and concrete arrays")
 	delete[] this->values;
 	delete[] this->concrete;
 
-	if (this->solution != nullptr)  
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	{
-		std::cout << "Deleting solution" << std::endl;
-	#endif
-		delete[] this->solution;
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	}
-	#endif
+	DEBUG_OUTPUT_IF(this->solution != nullptr, "Deleting solution") 
+	if (this->solution != nullptr) delete[] this->solution;
 
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	std::cout << "Deleting Neighbors" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Deleting Neighbors")
 	for (unsigned **i = this->neighbors, **iMax = i + this->sizeSquared; i < iMax; i++) delete[] *i;
 	delete[] this->neighbors;
 
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-	std::cout << "Deleting Neighborhoods" << std::endl;
-	#endif
+	DEBUG_OUTPUT("Deleting Neighborhoods")
 	for (unsigned ***i = this->neighborhoods, ***iMax = i + this->sizeSquared; i < iMax; i++) {
 		for (unsigned **j = *i, **jMax = j + 3; j < jMax; j++) {
 			delete[] *j;

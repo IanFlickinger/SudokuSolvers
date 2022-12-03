@@ -60,10 +60,9 @@ class Puzzle {
 		unsigned char getSizeSquared() const {return sizeSquared;}
 
 		// Mutators
-		bool setValue(unsigned char row, unsigned char col, unsigned char val);
+		bool setValue(unsigned char row, unsigned char col, unsigned char val) { return setValue(COORDS_TO_CELL(row, col, size), val); }
 		bool setValue(unsigned cell, unsigned char val);
 		bool setSolution(unsigned char* solution, bool copy = true);
-		bool setSolution(unsigned char** solution);
 		void reset();
 
 		// Graph representation

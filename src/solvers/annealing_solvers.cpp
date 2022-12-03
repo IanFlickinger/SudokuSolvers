@@ -2,10 +2,9 @@
 #include "puzzle.h"
 #include <cmath>
 
-#ifdef DEBUG_ANNEALING_SOLVERS_CPP
- #include <iostream>
- #include <iomanip>
-#endif
+#define DEBUG_ENABLED false
+#define DEBUG_ENABLED_VERBOSE false
+#include "debugging.h"
 
 using namespace Solvers;
 
@@ -28,21 +27,17 @@ AnnealingSolver::AnnealingSolver(unsigned reheats, unsigned iterations) {
 }
 
 void AnnealingSolver::solve(Puzzle &puzzle) {
-    #ifdef DEBUG_ANNEALING_SOLVERS_CPP
-     std::cout << "AnnealingSolver::solve(Puzzle &)\n";
-    #endif
+    DEBUG_FUNC_HEADER("AnnealingSolver::solve(Puzzle &)")
+
     // calculate the markov chain length
     unsigned chainLength = puzzle.getSizeSquared();
     for (unsigned cell = 0; cell < puzzle.getSizeSquared(); cell++) chainLength -= puzzle.isConcrete(cell);
     chainLength = chainLength * chainLength;
     unsigned iterations = chainLength * this->iterations;
 
-    #ifdef DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
-     std::cout << std::setw(55) << std::setfill('=') << '\n';
-     std::cout << "Preparing " << this->reheats << " heats of " << iterations << " iterations\n"
-               << "Markov chain length: " << chainLength << '\n'
-               << "Initializing empty cells...\n";
-    #endif
+    DEBUG_OUTPUT("Preparing %d heats of %d iterations", this->reheats, iterations)
+    DEBUG_OUTPUT("Markov chain length: %d", chainLength)
+    DEBUG_OUTPUT("Initilizing empty cells...")
 
     // initialize the puzzle so each row has every value
     for (unsigned char row = 0; row < puzzle.getSize(); row++) {
@@ -93,31 +88,21 @@ void AnnealingSolver::solve(Puzzle &puzzle) {
             double prob = exp(delta / temperature);
 
             // sample acceptance probability
-            #ifdef DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
-             std::cout << "Iteration " << it << ": Attempt to swap columns " << std::to_string(col1) 
-                       << " and " << std::to_string(col2) << " of row " << std::to_string(row)
-                       << " with delta " << delta;
-            #endif
+            DEBUG_STATEMENT(bool debugvar_swapped = true)
+            // bool debugvar_swapped = true;
             if (static_cast<double>(rand()) / RAND_MAX > prob) {
                 // undo cell swap if change was not accepted
-                #ifdef DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
-                std::cout << " failed\n";
-                #endif
+                DEBUG_STATEMENT(debugvar_swapped = false;)
                 unsigned char temp = puzzle.getValue(cell1);
                 puzzle.setValue(cell1, puzzle.getValue(cell2));
                 puzzle.setValue(cell2, temp);
             }
-            #ifdef DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
-             else std::cout << " succeeded\n";
-            #endif
+            DEBUG_OUTPUT("Iteration %d: Attempt to swap columns %d and %d of row %d with delta %d %s", 
+                         it, col1, col2, row, delta, debugvar_swapped ? "succeeded" : "failed")
         }
-        #ifdef DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
-         std::cout << "Heat " << heat << ": final conflict count is " << puzzle.numConflicts() << "\n";
-        #endif
+        DEBUG_OUTPUT("Heat %d: final conflict count is %d", heat, puzzle.numConflicts())
     }
-    #ifdef DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
-     std::cout << std::endl;
-    #endif
+    DEBUG_FUNC_END()
 }
 
 GeometricAnnealingSolver::GeometricAnnealingSolver(unsigned heats, unsigned its, double tempInit, double tempFact) 
@@ -128,14 +113,7 @@ GeometricAnnealingSolver::GeometricAnnealingSolver(unsigned heats, unsigned its,
 }
 
 inline double GeometricAnnealingSolver::tempSchedule(unsigned iteration, double temperature) {
-    #ifdef DEBUG_ANNEALING_SOLVERS_CPP_VERBOSE
-     double retVal = tempInit * (iteration == 0) + (iteration != 0) * tempFact * temperature;
-     std::cout << "GeometricAnnealingSolver::tempSchedule(" << iteration << ", " << temperature << ") = " << retVal << '\n';
-     return retVal;
-    #elif defined DEBUG_ANNEALING_SOLVERS_CPP
-     std::cout << "GeometricAnnealingSolver::tempSchedule(" << iteration << ", " << temperature << ")";
-     return tempInit * (iteration == 0) + (iteration != 0) * tempFact * temperature;
-    #else
-     return tempInit * (iteration == 0) + (iteration != 0) * tempFact * temperature;
-    #endif
+    DEBUG_OUTPUT("GeometricAnnealingSolver::tempSchedule(%d, %f) = %f", iteration, temperature, 
+                 tempInit * (iteration == 0) + (iteration != 0) * tempFact * temperature)
+    return tempInit * (iteration == 0) + (iteration != 0) * tempFact * temperature;
 }

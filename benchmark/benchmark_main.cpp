@@ -8,6 +8,7 @@ ADD_SOLVER(Solvers::DepthFirstSolver(), DepthFirst)
 ADD_SOLVER(Solvers::DepthFirstSolverV1(), DepthFirstV1)
 ADD_SOLVER(Solvers::GeometricAnnealingSolver(10, 50, 2000, 0.2), GeometricAnnealing)
 ADD_SOLVER(Solvers::CollapsingGraphSolver(), CollapsingGraph)
+ADD_SOLVER(Solvers::CollapsingGraphSolverV1(), CollapsingGraphV1)
 /****************************************************************************************/
 
 int main(int argc, char **argv) {
