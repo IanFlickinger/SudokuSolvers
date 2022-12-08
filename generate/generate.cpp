@@ -15,8 +15,11 @@
 #define DEBUG_ENABLED_VERBOSE false
 #include "debugging.h"
 
+
+// Returns true if and only if the provided puzzle has exactly one solution
 bool hasUniqueSolution(Puzzle &&puzzle) {
     DEBUG_OUTPUT("hasUniqueSolution(Puzzle &&)")
+
     // Initialize stacktracing vectors
     unsigned cell = 0, solutionCount = 0;
     std::vector<unsigned> cells;
@@ -28,7 +31,8 @@ bool hasUniqueSolution(Puzzle &&puzzle) {
     unsigned char guess = 1;
     // while (guess <= puzzle.getSize()) {
     while (true) {
-        if (puzzle.hasConflict() || cell > puzzle.getSizeSquared()) {
+        if (puzzle.hasConflict() || cell > puzzle.getSizeSquared()) { // branch is invalid or solution was just found
+            // backtrack to the last cell which still has values left to search on this branch
             guess = puzzle.getSize() + 1;
             while (guess > puzzle.getSize() && !guesses.empty()) {
                 cell = cells.back();
@@ -38,18 +42,24 @@ bool hasUniqueSolution(Puzzle &&puzzle) {
                 // clear cell
                 puzzle.setValue(cell, 0);
             }
-            if (guess <= puzzle.getSize()) {
+            // branch on condition of while loop's termination
+            if (guess <= puzzle.getSize()) { // cell has not been checked for all values
                 puzzle.setValue(cell, guess);
                 cells.push_back(cell);
                 guesses.push_back(guess);
-            } else return solutionCount == 1;
+            } else return solutionCount == 1; // search was exhaustive; return true if one solution was found, else false
         }
-        else if (!puzzle.isConcrete(cell)) {
+        else if (!puzzle.isConcrete(cell)) { 
+            // start search for cell at lowest value then progress
             puzzle.setValue(cell, 1);
             cells.push_back(cell);
             guesses.push_back(1);
         }
-        else if (cell + 1 >= puzzle.getSizeSquared()) solutionCount++;
+        else if (cell + 1 >= puzzle.getSizeSquared()) 
+            // all cells have been filled in with no conflict found
+            // return false if this is not the first solution found
+            if (++solutionCount > 1) return false; 
+
         cell++;
     }
 }
