@@ -47,7 +47,7 @@ Finally, a function `P(t, Δ)` which describes the acceptance probability must b
 
     P(t, Δ) = exp(-Δ / t)
 
-It is also often encouraged to sample a *series* of random state changes (as in a [markov chain](https://en.wikipedia.org//wiki/Markov_chain)) in between temperature updates. This is the approach taken in [[1]](#references), suggested in [[2]](#references), and implemented here. As recommended in [[1]](#references) the length of this chain is equal to the square of the number of empty cells in the provided puzzle.
+It is also often encouraged to sample a *series* of random state changes (as in a [markov chain](https://en.wikipedia.org//wiki/Markov_chain)) in between temperature updates. This is the approach taken in *Metaheuristics can solve sudoku puzzles* [[1]](#references), suggested in *Simulated Annealing: Theory and Applications* [[2]](#references), and implemented here. As recommended in *Metaheuristics can solve sudoku puzzles* [[1]](#references) the length of this chain is equal to the square of the number of empty cells in the provided puzzle.
 
 Before applying these decisions to the partially-filled Sudoku, the empty values must be initialized. To reduce the search space of the sudoku, each puzzle can be initialized so that every row contains one of every value. Thus, constraint violations only occur in the boxes and columns, and the random state changes can be limited to swapping two cells in the same row. Take the following image as an example.
 
@@ -59,6 +59,8 @@ In the event that the system gets sufficiently "cool" and the puzzle is still no
 
 ## Collapsing Graph
 
+### The Concept
+
 In this approach, the Sudoku graph is not the state space graph as defined above in [depth first search](#basic-searches). Here, the Sudoku graph is an undirected graph `G(V, E)` with vertices `V` and edges `E` defined as such:
 
 > The set of vertices `v∈V` is the set of all cells in the Sudoku puzzle
@@ -68,7 +70,7 @@ In this approach, the Sudoku graph is not the state space graph as defined above
 Parameterizing the edges by neighborhood type allows for a separation of constraints - the utility of which will become more apparent later on. For now, it is simply important to note that
 
 <ol>
-    <li>a cell <code>v<sub>1</sub></code> which shares two neighborhoods (e.g., row and box) with another cell <code>v<sub>2</sub></code> will now have this information represented in the fact that they will be connected by two edges <code>e<sub>r</sub>(v<sub>1</sub>,v<sub>2</sub>,r)</code> and <code>e<sub>b</sub>(v<sub>1</sub>,v<sub>2</sub>,b)</code> in the graph <code>G</code>; and</li>
+    <li>a cell <code>v<sub>1</sub></code> which shares two neighborhoods (e.g., row and box) with another cell <code>v<sub>2</sub></code> will now have this information represented by two edges <code>e<sub>r</sub>(v<sub>1</sub>,v<sub>2</sub>,r)</code> and <code>e<sub>b</sub>(v<sub>1</sub>,v<sub>2</sub>,b)</code> in the graph <code>G</code>; and</li>
     <li>the graph <code>G(V,E)</code> can be described as the union of many subgraphs <code>G<sub>i</sub>(V<sub>i</sub>,E<sub>i</sub>)</code> which each represent a single neighborhood and where the following properties hold: 
         <ul>
         <li>the full graph edge set <code>E</code> is partitioned by the set of all subgraph edge sets <code>E<sub>i</sub></code></li>
@@ -92,6 +94,46 @@ The physical coordinates of each node in the simplex are represented using [bary
 To illustrate this concept, the following figure shows the three simplex systems in which the first vertex (shown in grey) exists.
 
 ![Simplex Example Image](../../readme-images/cgs-example.jpg "Example Simplex Systems")
+
+### The Implementation
+
+#### Simplex Constraints
+
+For barycentric coordinates <code>\<α<sub>1</sub>, α<sub>2</sub>, ..., α<sub>n</sub>\></code> to remain in the simplex, they must satisfy two constraints.
+
+1. The sum over all coordinate values must equal one (<code>Σ<sub>i=1</sub><sup>n</sup>[α<sub>i</sub>] = 1</code>), and
+2. all coordinate values must be positive real numbers (<code>∀i∈{1 ... n}; α<sub>i</sub>≥0</code>)
+
+For coherence, the first constraint will be reffered to as the affine constraint since it constrains the coordinates to the affine space which contains the simplex. The second constraint will be referred to simply as the nonnegative constraint.
+
+#### Update Step
+
+During the update step, it is important that each node receive information from all of its neighbors. Further, the weight of each neighbor should be proportional to some measure of confidence in that neighbor's current value. A convenient measure of that confidence - which will also aid in satisfying the affine constraint - is the displacement vector from each node to the barycenter `C`. When adding this displacement vector to any vector lying in the affine space, the resultant vector will also lie in the affine space. 
+
+Each node can then be adjusted by adding the average over all of its neighborhood update vectors.
+
+#### Reconstrain Step
+
+While the update vector will maintain the affine constraint, it is not guaranteed to maintain the nonnegative constraint. There are many ways to reconstrain to the simplex from within the affine space. It is important to reconstrain in a manner that is consistent with the metaphor of the node running into simplex walls and sliding along them. Thus, the following procedure is used:
+
+    constraining ← true
+    while constraining:
+        constraining ← false
+        sum ← -1
+        count ← 0
+        for α in coordinates:
+            if α > 0: 
+                sum ← sum + α
+                count ← count + 1
+            else: 
+                α ← 0
+        update ← sum / count
+        for α in coordinates:
+            if α > 0:
+                α ← α - update
+            if α < 0:
+                constraining ← true
+
 
 ## Algorithm Comparison
 -----------------
