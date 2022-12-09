@@ -110,6 +110,12 @@ For coherence, the first constraint will be reffered to as the affine constraint
 
 During the update step, it is important that each node receive information from all of its neighbors. Further, the weight of each neighbor should be proportional to some measure of confidence in that neighbor's current value. A convenient measure of that confidence - which will also aid in satisfying the affine constraint - is the displacement vector from each node to the barycenter `C`. When adding this displacement vector to any vector lying in the affine space, the resultant vector will also lie in the affine space. 
 
+![Example neighbor displacement vectors](../../readme-images/cgsn-example.jpg "Neighbor displacement vectors")
+
+In the figure above, the displacement vectors of each neighbor are shown. Below, the combined neighborhood update vectors can be seen. 
+
+![Example neighborhood update vectors](../../readme-images/cgsu-example.jpg "Neighborhood update vectors")
+
 Each node can then be adjusted by adding the average over all of its neighborhood update vectors.
 
 #### Reconstrain Step
@@ -134,6 +140,10 @@ While the update vector will maintain the affine constraint, it is not guarantee
             if α < 0:
                 constraining ← true
 
+
+With the combined update and constrain steps, the full process can be visualized in the figure below. As expected, the node "collapses" to the value 4 - the correct value for the first cell in the Sudoku puzzle shown previously.
+
+![Example update with reconstraint](../../readme-images/cgsc-example.jpg "Update step with reconstraint to simplex")
 
 ## Algorithm Comparison
 -----------------
