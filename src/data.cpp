@@ -45,21 +45,21 @@ PuzzleLoader::PuzzleLoader(std::string filepath, unsigned long datasetSize, unsi
     // confirm puzzle line size
     std::string puzzle;
     dataset >> puzzle;
-    this->lineSize = puzzle.length();
+    this->lineSize = puzzle.length() + 1; // include newline character
     DEBUG_OUTPUT("Puzzle line has length %d: %s", this->lineSize, puzzle.c_str())
     size_t cpos = puzzle.find(',');
     if (cpos == std::string::npos) {
         // no comma in line => line specifies puzzle wo/solution
-        if (this->lineSize != this->puzzleSizeSquared) {
-            DEBUG_OUTPUT("ERROR: Mismatch between expected puzzle size %d and given puzzle size", this->puzzleSizeSquared, this->lineSize)
+        if (this->lineSize != this->puzzleSizeSquared + 1) {
+            DEBUG_OUTPUT("ERROR: Mismatch between expected puzzle size %d and given puzzle size %d", this->puzzleSizeSquared, this->lineSize)
             DEBUG_FUNC_END()
             return;
         }
     }
-    else if (puzzle.find(',', cpos) == std::string::npos) {
+    else if (puzzle.find(',', cpos+1) == std::string::npos) {
         // only one comma in line => line specifies puzzle w/solution
-        if (this->lineSize != (this->puzzleSizeSquared + 1) << 1) {
-            DEBUG_OUTPUT("ERROR: Mismatch between expected line size %d and given line size", (this->puzzleSizeSquared + 1) << 1, this->lineSize)
+        if (this->lineSize != ((this->puzzleSizeSquared + 1) << 1)) {
+            DEBUG_OUTPUT("ERROR: Mismatch between expected line size %d and given line size %d", (this->puzzleSizeSquared + 1) << 1, this->lineSize)
             DEBUG_FUNC_END()
             return;
         }
@@ -94,6 +94,7 @@ Puzzle PuzzleLoader::load(unsigned seed) {
     dataset.open(this->file);
     if (dataset.fail() || dataset.bad() || dataset.eof()) {
         DEBUG_OUTPUT("Error opening dataset file... returning empty puzzle")
+        DEBUG_FUNC_END()
         return Puzzle();
     }
     
@@ -113,6 +114,7 @@ Puzzle PuzzleLoader::load(unsigned seed) {
     // DO NOT CONTINUE IF PUZZLE SIZE IS WRONG
     if (sizeSquared != this->puzzleSizeSquared) {
         DEBUG_OUTPUT("Puzzle size mismatch! Returning empty puzzle")
+        DEBUG_FUNC_END()
         return Puzzle(this->puzzleSize);
     }
 
