@@ -41,12 +41,10 @@ class PuzzleTest : public ::testing::Test {
 
 
 TEST_F(PuzzleTest, TestInitializedValues) {
-	std::cout << "Test Begun" << std::endl;
 	for (int r = 0, c = 0; r < puzzleSize; c = (c+1) % puzzleSize, r = r + (c == 0)) {
 		char eVal = (r == c ? r+1 : 0);
 		EXPECT_EQ(puzzle.getValue(r, c), eVal);
 	}
-	std::cout << "Test Finished" << std::endl;
 }
 
 TEST_F(PuzzleTest, TestConcreteValues) {
@@ -104,55 +102,6 @@ TEST_F(PuzzleTest, TestSetEmpty) {
 		EXPECT_EQ(puzzle.setValue(r, c, 0), 1);
 		EXPECT_EQ(puzzle.getValue(r, c), 0);
 	}
-}
-
-TEST_F(PuzzleTest, TestNeighbors) {
-	const unsigned **neighborList = puzzle.neighborList();
-	const unsigned neighborSize = puzzle.computeNeighborhoodSize();
-	unsigned fails = 0;
-	for (unsigned cell = 0 ; cell < puzzleSizeSquared; cell++) {
-		unsigned char row = cell / puzzleSize, majorRow = row / puzzleSizeSqrt, minorRow = row % puzzleSizeSqrt;
-		unsigned char col = cell % puzzleSize, majorCol = col / puzzleSizeSqrt, minorCol = col % puzzleSizeSqrt;
-
-		const unsigned *neighborhood = neighborList[cell];
-		for (unsigned neighbor = 0; neighbor < neighborSize; neighbor++) {
-			unsigned n = neighborhood[neighbor];
-			unsigned char neighborRow = n / puzzleSize;
-			if (neighborRow == row) continue;
-			unsigned char neighborCol = n % puzzleSize;
-			if (neighborCol == col) continue;
-			unsigned char neighborMajorRow = neighborRow / puzzleSizeSqrt;
-			unsigned char neighborMajorCol = neighborCol / puzzleSizeSqrt;
-			if (neighborMajorRow != majorRow || neighborMajorCol != majorCol) fails++;
-		}
-	}
-	EXPECT_EQ(fails, 0);
-}
-
-TEST_F(PuzzleTest, TestNeighborhoods) {
-	const unsigned ***neighborList = puzzle.neighborhoodList();
-	const unsigned neighborSize = puzzle.getSize() - 1;
-	unsigned fails = 0;
-	for (unsigned cell = 0 ; cell < puzzleSizeSquared; cell++) {
-		unsigned char row = cell / puzzleSize, majorRow = row / puzzleSizeSqrt, minorRow = row % puzzleSizeSqrt;
-		unsigned char col = cell % puzzleSize, majorCol = col / puzzleSizeSqrt, minorCol = col % puzzleSizeSqrt;
-
-		const unsigned **neighborhoodList = neighborList[cell];
-		for (unsigned n = 0; n < 3; n++) {
-			const unsigned *neighborhood = neighborhoodList[n];
-			for (unsigned neighbor = 0; neighbor < neighborSize; neighbor++) {
-				unsigned n = neighborhood[neighbor];
-				unsigned char neighborRow = n / puzzleSize;
-				if (neighborRow == row) continue;
-				unsigned char neighborCol = n % puzzleSize;
-				if (neighborCol == col) continue;
-				unsigned char neighborMajorRow = neighborRow / puzzleSizeSqrt;
-				unsigned char neighborMajorCol = neighborCol / puzzleSizeSqrt;
-				if (neighborMajorRow != majorRow || neighborMajorCol != majorCol) fails++;
-			}
-		}
-	}
-	EXPECT_EQ(fails, 0);
 }
 
 } // namespace
