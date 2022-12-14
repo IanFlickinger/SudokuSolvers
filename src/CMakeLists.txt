@@ -3,6 +3,7 @@ set(lib_files
     puzzle.cpp
     data.cpp
     display.cpp
+    graph.cpp
 )
 set(solver_files
     basic_solvers.cpp

@@ -7,8 +7,8 @@
 #include "data.h"
 #include "solvers.h"
 
-#define DEBUG_ENABLED false
-#define DEBUG_VERBOSE_ENABLED false
+// #define DEBUG_ENABLED
+// #define DEBUG_ENABLED_VERBOSE
 #include "debugging.h"
 
 #include "benchmarking.h"
@@ -16,41 +16,57 @@
 using namespace std;
 
 BenchmarkPuzzleLoader * BenchmarkPuzzleLoader::GetInstance() {
+	DEBUG_OUTPUT("BenchmarkPuzzleLoader::GetInstance()")
 	static BenchmarkPuzzleLoader bpl;
 	return &bpl;
 }
 
 SolverList * SolverList::GetInstance() {
+	DEBUG_OUTPUT("SolverList::GetInstance()")
     static SolverList sl;
     return &sl;
 }
 
 SolverList::SolverList(unsigned maxcap) : maxcap(maxcap), capinc(maxcap), curcap(0) {
+	DEBUG_OUTPUT("SolverList::SolverList(%d)", maxcap)
     solvers = new Solvers::Solver*[maxcap];
     names = new std::string[maxcap];
 }
 
 SolverList::~SolverList() {
+	DEBUG_OUTPUT("SolverList::~SolverList()")
     for (unsigned i = 0; i < curcap; i++) delete solvers[i];
     delete[] solvers;
 }
 
 int SolverList::addSolver(Solvers::Solver *solver, std::string name) {
+	DEBUG_FUNC_HEADER("SolverList::addSolver(Solver, %s)", name.c_str())
     if (curcap >= maxcap) {
+		DEBUG_OUTPUT("Capacity overflow detected")
+		DEBUG_STATEMENT(unsigned oldcap = maxcap)
         maxcap += capinc;
+
+		DEBUG_OUTPUT("Increasing capacity from %d to %d", oldcap, maxcap)
         Solvers::Solver **solversExt = new Solvers::Solver*[maxcap];
         std::string *namesExt = new std::string[maxcap];
+
+		DEBUG_OUTPUT("Transferring items to newly allocated memory")
         for (unsigned i = 0; i < curcap; i++) {
             solversExt[i] = solvers[i];
-            delete solvers[i];
             namesExt[i] = names[i];
         }
+
+		DEBUG_OUTPUT("Freeing previously allocated memory")
         delete[] solvers;
         solvers = solversExt;
+		delete[] names;
+		names = namesExt;
     }
+	DEBUG_OUTPUT("Appending solver info to list")
     names[curcap] = name;
     solvers[curcap++] = solver;
 
+	DEBUG_FUNC_RETURN(0)
     return 0;
 }
 
@@ -109,7 +125,7 @@ void compareSolvers(
 			std::string &name = names[solverNum];
 
 			// Test solver 
-			DEBUG_OUTPUT("Running %s solver", name)
+			DEBUG_OUTPUT("Running %s solver", name.c_str())
 			start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
 			for (Puzzle *puzzle = puzzles, *puzzleMax = puzzles + numPuzzles; puzzle < puzzleMax; puzzle++) {
 				solver.solve(*puzzle);
@@ -144,9 +160,11 @@ void displayComparisonStats(
 	std::string *names, 
 	time_compare_t &timeCompare
 ) {
+	DEBUG_OUTPUT("displayComparisonStats(%d, %d, %d, string*, time_compare_t&)", numTests, numPuzzles, numSolvers)
 	// initialize means and variances
 	double means[numSolvers], *meanMax = means + numSolvers;
 	double vars[numSolvers], *varMax = vars + numSolvers;
+	double effs[numSolvers*numSolvers], *effsMax = effs + numSolvers*numSolvers;
 	for (double *mean = means, *var = vars; mean < meanMax; mean++, var++) 
 		*mean = *var = 0;
 
@@ -173,28 +191,51 @@ void displayComparisonStats(
 			*var /= numTests - 1;
 	}
 
-	// display stats
-	cout << "\n\n";
-	std::string *name = names;
-	unsigned maxNameLength = 0;
+	// compute compared efficiency metrics
+	unsigned *solve1 = timeCompare.solves;
+	for (double *eff = effs, *mean1 = means; mean1 < meanMax; mean1++, solve1++) {
+		unsigned *solve2 = timeCompare.solves;
+		for (double *mean2 = means; mean2 < meanMax; mean2++, solve2++, eff++)
+			*eff = (*solve1 * *mean2) / (*solve2 * *mean1);
+	}
+
+	// prep stat display
+	string *name = names;
+	unsigned maxNameLength = 0; 
 	unsigned nameLengths[numSolvers] = {}; // initialize to zero
 	unsigned *nameLength = nameLengths;
-	unsigned *solved = timeCompare.solves;
-	for (double *mean = means, *var = vars; 
-		 mean < meanMax; name++, mean++, var++, solved++, nameLength++
-	) {
-		cout << *name << " Execution Stats\n"
-		 	 << "\tMean: " << *mean * 1e-3 << " seconds\n"
-		 	 << "\tVariance: " << *var * 1e-6 << " seconds\n"
-		 	 << "\tSolve Rate: " << *solved * 1e2 / (numTests * numPuzzles) << "%\n";
+	for (unsigned s = 0; s < numSolvers ; s++, name++, nameLength++) {
 		*nameLength = name->length();
 		if (*nameLength > maxNameLength) maxNameLength = *nameLength;
 	}
-	cout << endl;
+	cout << "\n\n";
+
+	// display stats
+	unsigned statwidth = 12;
+	unsigned numstats = 4;
+	cout << "|" << setw(maxNameLength+1) << "STATS" << " |"
+		 << setw(statwidth) << "Time Mean" << " |"
+		 << setw(statwidth) << "Time Var" << " |"
+		 << setw(statwidth) << "Solved" << " |"
+		 << setw(statwidth) << "Solve Rate" << " |\n";
+	cout << '+' << setw(maxNameLength+3) << setfill('=') << '+';
+	for (unsigned j = 0; j < numstats; j++) {
+		cout << setw(statwidth+2) << '+';
+	}
+	cout << setfill(' ') << '\n';
+	double solveFactor = 100. / (numTests * numPuzzles);
+	for (unsigned i = 0; i < numSolvers; i++) {
+		cout << "|" << setw(maxNameLength+1) << names[i] << " |"
+		 	 << setw(statwidth-1) << means[i] * 1e-3 << "s |"
+		 	 << setw(statwidth-1) << vars[i] * 1e-6 << "s |"
+		 	 << setw(statwidth) << timeCompare.solves[i] << " |"
+			 << setw(statwidth-1) << timeCompare.solves[i] * solveFactor << "% |\n";
+	}
+	cout << '\n';
 
 	// display comparison
 	unsigned widths[numSolvers];
-	cout << "|" << setw(maxNameLength+1) << "" << " |";
+	cout << "|" << setw(maxNameLength+1) << "Puzzle/Puzzle" << " |";
 	for (unsigned j = 0; j < numSolvers; j++) {
 		unsigned w = (maxNameLength - nameLengths[j]) / 2 + 1;
 		widths[j] = w*2 + nameLengths[j];
@@ -208,19 +249,18 @@ void displayComparisonStats(
 		cout << setw(widths[j]+1) << '+';
 	}
 	cout << setfill(' ') << '\n';
+	double *eff = effs;
 	for (unsigned i = 0; i < numSolvers; i++) {
 		cout << "|" << setw(maxNameLength+1) << names[i] << " |";
-		for (unsigned j = 0; j < numSolvers; j++) {
-			cout << setw(widths[j]) << "" << "|";
+		for (unsigned j = 0; j < numSolvers; j++, eff++) {
+			cout << setw(widths[j]) << *eff << "|";
 		}
 		cout << '\n';
 	}
-		//  << "Solver " << (meanA < meanB ? 'A' : 'B') << " is faster by factor "
-		//  << (meanA > meanB ? meanA / meanB : meanB / meanA) << "s/s"
-		//  << endl;
 }
 
 void RUN_BENCHMARKS(int argc, char **argv) {
+	DEBUG_FUNC_HEADER("RUN_BENCHMARKS(%d, char**)", argc)
 	unsigned numPuzzles = 1, numTests = 1;
 	if (argc > 1) numPuzzles = atoi(argv[1]); 
 	if (argc > 2) numTests = atoi(argv[2]);
@@ -231,4 +271,5 @@ void RUN_BENCHMARKS(int argc, char **argv) {
 	displayComparisonStats(numTests, numPuzzles, NUM_SOLVERS, SOLVER_NAMES, timeCompare);
 
 	cout << endl;
+	DEBUG_FUNC_END()
 }

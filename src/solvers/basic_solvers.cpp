@@ -3,8 +3,8 @@
 #include "solvers.h"
 #include "puzzle.h"
 
-#define DEBUG_ENABLED false
-#define DEBUG_ENABLED_VERBOSE false
+// #define DEBUG_ENABLED
+// #define DEBUG_ENABLED_VERBOSE
 #include "debugging.h"
 
 void Solvers::DepthFirstSolverV1::solve(Puzzle &puzzle) {

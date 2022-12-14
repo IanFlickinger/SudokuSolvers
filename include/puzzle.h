@@ -18,10 +18,6 @@ class Puzzle {
 		unsigned char * values; // standard sudoku will be flattened 9x9 multidimensional array 
 		unsigned char * solution; // standard sudoku will be flattened 9x9 multidimensional array 
 		bool * concrete; // 1:1 correspondence with values - whether the value is set 
-		
-		// For graph representation
-		unsigned **neighbors;
-		unsigned ***neighborhoods;
 
 		void initializeSize(unsigned char);
 
@@ -64,18 +60,6 @@ class Puzzle {
 		bool setValue(unsigned cell, unsigned char val);
 		bool setSolution(unsigned char* solution, bool copy = true);
 		void reset();
-
-		// Graph representation
-		const unsigned * neighborsOf(unsigned cell) 
-			{ return const_cast<const unsigned *>(neighbors[cell]); }
-		const unsigned * neighborsOf(unsigned char row, unsigned char col)
-			{ return const_cast<const unsigned *>(neighborsOf(COORDS_TO_CELL(row, col, size))); }
-		const unsigned ** neighborList() { return const_cast<const unsigned **>(neighbors); }
-		const unsigned **neighborhoodsOf(unsigned cell) 
-			{ return const_cast<const unsigned **>(neighborhoods[cell]); }
-		const unsigned **neighborhoodsOf(unsigned char row, unsigned char col) 
-			{ return const_cast<const unsigned **>(neighborhoods[COORDS_TO_CELL(row, col, size)]); }
-		const unsigned *** neighborhoodList() { return const_cast<const unsigned ***>(neighborhoods); }
 
 		// Boolean Queries
 		bool isSolved() const;

@@ -39,9 +39,17 @@ class GeometricAnnealingSolver : public virtual AnnealingSolver {
         inline double tempSchedule(unsigned iteration, double temperature) override;
 };
 
-class CollapsingGraphSolver : public virtual Solver 
+class GraphSolver : public virtual Solver {
+    protected: const unsigned maxIters;
+    public: 
+        GraphSolver() : maxIters(100UL) {};
+        GraphSolver(unsigned iters) : maxIters(iters) {};
+};
+class SimpleAdditiveGraphSolver : public virtual GraphSolver
     { public: void solve(Puzzle&) override; };
-class CollapsingGraphSolverV1 : public virtual Solver 
+class AdditiveGraphSolver : public virtual GraphSolver
+    { public: void solve(Puzzle&) override; };
+class MultiplicativeGraphSolver : public virtual GraphSolver
     { public: void solve(Puzzle&) override; };
 
 }

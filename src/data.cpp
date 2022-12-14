@@ -5,20 +5,89 @@
 #include <filesystem>
 #include <cmath>
 
-#define DEBUG_ENABLED false
-#define DEBUG_ENABELD_VERBOSE false
+// #define DEBUG_ENABLED
+// #define DEBUG_ENABLED_VERBOSE 
 #include "debugging.h"
 
-Puzzle PuzzleLoader::load(unsigned seed) const {
+PuzzleLoader::PuzzleLoader(std::string filepath, unsigned long datasetSize, unsigned char puzzleSize, unsigned seed) : 
+    file(filepath), datasetSize(datasetSize), puzzleSize(puzzleSize), puzzleSizeSquared(puzzleSize*puzzleSize), 
+    seed(seed), batchSize(0)
+{
+    DEBUG_FUNC_HEADER("PuzzleLoader::PuzzleLoader(\"%s\", %d, %d, %d)", filepath.c_str(), datasetSize, puzzleSize, seed)
+    // TODO: use seed to instantiate a RNG member
+    unsigned randMaxLowerBound = RAND_MAX_LOWER_BOUND_FACTOR * datasetSize;
+    randMultiplier = randMaxLowerBound > RAND_MAX ? RAND_MAX / randMaxLowerBound : 1;
+    puzzleCursor = 0;
+
+    // verify file is csv
+    if (filepath.substr(filepath.find_last_of('.')) != ".csv") {
+        DEBUG_OUTPUT("ERROR: Given file extension %s is not csv", filepath.substr(filepath.find_last_of('.')).c_str())
+        DEBUG_FUNC_END()
+        return;
+    }
+
+    // scan file
+    DEBUG_OUTPUT("Scanning dataset file")
+    std::ifstream dataset;
+    dataset.open(filepath);
+    if (dataset.fail() || dataset.bad() || dataset.eof()) {
+        DEBUG_OUTPUT("Error opening dataset file... could not instantiate PuzzleLoader properly")
+        DEBUG_FUNC_END()
+        return;
+    }
+
+    // read in header line size
+    std::string header;
+    dataset >> header;
+    this->headerSize = header.length();
+    DEBUG_OUTPUT("Header line has length %d: %s", this->headerSize, header.c_str())
+
+    // confirm puzzle line size
+    std::string puzzle;
+    dataset >> puzzle;
+    this->lineSize = puzzle.length();
+    DEBUG_OUTPUT("Puzzle line has length %d: %s", this->lineSize, puzzle.c_str())
+    size_t cpos = puzzle.find(',');
+    if (cpos == std::string::npos) {
+        // no comma in line => line specifies puzzle wo/solution
+        if (this->lineSize != this->puzzleSizeSquared) {
+            DEBUG_OUTPUT("ERROR: Mismatch between expected puzzle size %d and given puzzle size", this->puzzleSizeSquared, this->lineSize)
+            DEBUG_FUNC_END()
+            return;
+        }
+    }
+    else if (puzzle.find(',', cpos) == std::string::npos) {
+        // only one comma in line => line specifies puzzle w/solution
+        if (this->lineSize != (this->puzzleSizeSquared + 1) << 1) {
+            DEBUG_OUTPUT("ERROR: Mismatch between expected line size %d and given line size", (this->puzzleSizeSquared + 1) << 1, this->lineSize)
+            DEBUG_FUNC_END()
+            return;
+        }
+    }
+    else {
+        // more than one comma in line => violates api-defined format of file
+        DEBUG_OUTPUT("ERROR: Too many columns in csv file")
+        DEBUG_FUNC_END()
+        return;
+    }
+
+    // close file
+    dataset.close();
+    DEBUG_FUNC_END()
+};
+
+Puzzle PuzzleLoader::load(unsigned seed) {
     DEBUG_FUNC_HEADER("PuzzleLoader::loadNew(%d)", seed)
     // select random puzzle
-    std::srand(seed);
-    unsigned puzzleNumber;
-    puzzleNumber = std::rand() * this->randMultiplier;
-    puzzleNumber += std::rand() % this->randMultiplier;
-    puzzleNumber %= this->datasetSize;
-    DEBUG_OUTPUT("Random puzzle number selected: %d", puzzleNumber)
-    
+    unsigned puzzleNumber = this->puzzleCursor++;
+
+    if (seed && this->seed) {
+        std::srand(seed);
+        puzzleNumber = std::rand() * this->randMultiplier;
+        puzzleNumber += std::rand() % this->randMultiplier;
+        puzzleNumber %= this->datasetSize;
+    }
+    DEBUG_OUTPUT("Puzzle number selected: %d", puzzleNumber)
 
     // READ IN PUZZLE
     std::ifstream dataset;
@@ -29,12 +98,12 @@ Puzzle PuzzleLoader::load(unsigned seed) const {
     }
     
     // seek puzzleNumber line
-    dataset.seekg(SUDOKU_DATASET_HEADER_LINESIZE + this->lineSize * puzzleNumber);
+    dataset.seekg(this->headerSize + this->lineSize * puzzleNumber);
 
     // read in puzzle line
     std::string puzzleLine;
     dataset >> puzzleLine;
-    DEBUG_OUTPUT("Puzzle line read from file: %s", puzzleLine)
+    DEBUG_OUTPUT("Puzzle line read from file: %s", puzzleLine.c_str())
     
     // close file
     dataset.close();
@@ -60,13 +129,8 @@ Puzzle PuzzleLoader::load(unsigned seed) const {
         DEBUG_STATEMENT(solutionBuffer += std::to_string(solution[i]))
     }
     
-    #ifdef DEBUG_DATA_CPP_VERBOSE
-     std::cout << "Initial Values: " << valuesBuffer << '\n';
-     std::cout << "Solution: " << solutionBuffer << '\n';
-     std::cout << std::endl;
-    #endif
-    DEBUG_OUTPUT("Initial Values: %s", valuesBuffer)
-    DEBUG_OUTPUT("Solution: %s", solutionBuffer)
+    DEBUG_OUTPUT("Initial Values: %s", valuesBuffer.c_str())
+    DEBUG_OUTPUT("Solution: %s", solutionBuffer.c_str())
 
     DEBUG_FUNC_END()
     return Puzzle(this->puzzleSize, values, solution, false);

@@ -3,58 +3,11 @@
 #include <cmath>
 #include <string>
 
-#define DEBUG_ENABLED false
-#define DEBUG_ENABLED_VERBOSE false
+#include "graph.h"
+
+// #define DEBUG_ENABLED
+// #define DEBUG_ENABLED_VERBOSE
 #include "debugging.h"
-
-template <typename Key, typename Val> 
-struct node_t {
-	Key key;
-	Val val;
-	node_t *next = nullptr;
-
-	node_t() = default;
-	inline node_t(Key key, Val val) {this->key = key; this->val = val;}
-};
-
-template<typename Key, typename Val> 
-struct cache_t {
-	node_t<Key, Val> *listHead = nullptr;
-	
-	Val get(Key key, Val defaultValue) {
-		node_t<Key, Val> *cursor = listHead;
-		while (cursor != nullptr) {
-			if (key == cursor->key) return cursor->val;
-			cursor = cursor->next;
-		}
-		return defaultValue;
-	}
-
-	bool add(Key key, Val val) {
-		if (listHead == nullptr) {
-			listHead = new node_t<Key, Val>(key, val);
-			return true;
-		}
-		node_t<Key, Val> *cursor = listHead;
-		while (true) {
-			if (cursor->key == key) return false;
-			if (cursor->next == nullptr) break;
-			cursor = cursor->next;
-		}
-		cursor->next = new node_t<Key, Val>(key, val);
-		return true;
-	}
-
-	~cache_t() {
-		if (listHead == nullptr) return;
-		node_t<Key, Val> * cursor = listHead, *last = cursor;
-		while (cursor != nullptr) {
-			cursor = cursor->next;
-			delete last;
-			last = cursor;
-		}
-	}
-};
 
 
 unsigned perfectSqrt(unsigned square) {
@@ -133,96 +86,6 @@ void Puzzle::initializeSize(unsigned char size) {
 	this->values = new unsigned char[this->sizeSquared];
 	this->concrete = new bool[this->sizeSquared];
 	this->solution = nullptr;
-
-	// BUILD NEIGHBORHOODS
-	// TODO: several optimizations are possible
-	DEBUG_OUTPUT("Building neighborhoods")
-	unsigned neighborSize = this->computeNeighborhoodSize();
-	unsigned **neighbors = new unsigned*[this->sizeSquared];
-	for (unsigned **i = neighbors, **iMax = i + this->sizeSquared; i < iMax; i++) *i = new unsigned[neighborSize];
-
-	unsigned neighborhoodSize = this->size - 1;
-	unsigned ***neighborhoods = new unsigned**[this->sizeSquared];
-	for (unsigned ***i = neighborhoods, ***iMax = i + this->sizeSquared; i < iMax; i++) {
-		*i = new unsigned*[3]; 
-		for (unsigned **j = *i, **jMax = j + 3; j < jMax; j++) 
-			*j = new unsigned[neighborhoodSize];
-	}
-
-	#ifdef DEBUG_PUZZLE_CPP_VERBOSE
-		std::cout << "MemoryAllocated" << std::endl;
-	#endif
-
-	unsigned cell = 0, rowOffset = 0, rowCeiling = this->size;
-	unsigned boxOffset = 0, boxCeiling = (this->sizeSqrt - 1) * this->size + this->sizeSqrt;
-	for (unsigned char row = 0, col = 0, majorRow = 0, majorCol = 0, minorRow = 0, minorCol = 0; 
-		cell < this->sizeSquared; cell++
-	) {
-		DEBUG_OUTPUT("Cell %d:", cell)
-		DEBUG_INDENT()
-		unsigned neighborOffset = 0;
-
-		// build row neighborhood
-		for (unsigned otherCell = rowOffset, i = 0; otherCell < rowCeiling; otherCell++) {
-			if (otherCell != cell) {
-				neighbors[cell][neighborOffset++] = otherCell;
-				neighborhoods[cell][0][i++] = otherCell;
-			}
-		}
-		DEBUG_OUTPUT("Row neighborhood complete")
-
-		// build col neighborhood
-		for (unsigned otherCell = col, i = 0; otherCell < this->sizeSquared; otherCell += this->size)
-			if (otherCell != cell) {
-				neighbors[cell][neighborOffset++] = otherCell;
-				neighborhoods[cell][1][i++] = otherCell;
-			}
-		DEBUG_OUTPUT("Column neighborhood complete")
-		
-		// build box neighborhood
-		unsigned char otherMinorRow = 0, otherMinorCol = 0;
-		for (unsigned otherCell = boxOffset, i = 0; 
-				otherMinorRow < this->sizeSqrt; 
-				otherMinorCol++, otherCell++
-		) {
-			if (otherMinorCol == this->sizeSqrt) {
-				otherMinorCol = 0; otherMinorRow++;
-				otherCell += this->size - this->sizeSqrt;
-			}
-			if (otherCell != cell) {
-				if (otherMinorCol != minorCol && otherMinorRow != minorRow) 
-					neighbors[cell][neighborOffset++] = otherCell;
-				neighborhoods[cell][2][i++] = otherCell;
-			}
-		}
-		DEBUG_OUTPUT("Box neighborhood complete")
-		DEBUG_OUTDENT()
-
-		// update loop variants
-		minorCol++; col++;
-		if (minorCol == this->sizeSqrt) {
-			minorCol = 0; majorCol++;
-			boxOffset += this->sizeSqrt;
-			boxCeiling += this->sizeSqrt;
-			if (col == this->size) {
-				col = majorCol = 0;
-				minorRow++; row++;
-				rowOffset += this->size;
-				rowCeiling += this->size;
-				boxOffset -= this->size;
-				boxCeiling -= this->size;
-				if (minorRow == this->sizeSqrt) {
-					minorRow = 0; majorRow++;
-					unsigned majorSize = this->sizeSqrt * this->size;
-					boxOffset += majorSize;
-					boxCeiling += majorSize;
-				}
-			}
-		}
-	}
-	this->neighbors = neighbors;
-	this->neighborhoods = neighborhoods;
-
 	DEBUG_FUNC_END()
 }
 
@@ -235,8 +98,6 @@ Puzzle::Puzzle() {
 	this->values = nullptr;
 	this->concrete = nullptr;
 	this->solution = nullptr;
-	this->neighbors = nullptr;
-	this->neighborhoods = nullptr;
 }
 
 Puzzle::Puzzle(unsigned char size) {
@@ -304,7 +165,6 @@ Puzzle::Puzzle(unsigned char size, unsigned char **values) {
 Puzzle::Puzzle(const Puzzle &other) {
 	DEBUG_FUNC_HEADER("Puzzle::Puzzle(Puzzle&)")
 	this->initializeSize(other.size);
-	// TODO: handle neighbors for efficiency?
 	// TODO: handle solution
 	for (int cell = 0; cell < this->sizeSquared; cell++) {
 		DEBUG_STATEMENT(unsigned r = cell / size)
@@ -320,23 +180,6 @@ Puzzle::Puzzle(const Puzzle &other) {
 	}
 
 	DEBUG_FUNC_END()
-}
-
-bool Puzzle::setValue(unsigned char row, unsigned char col, unsigned char val) {
-	DEBUG_FUNC_HEADER("Puzzle::setValue(%d, %d, %d)", row, col, val)
-	unsigned cell = COORDS_TO_CELL(row, col, this->size);
-
-	DEBUG_OUTPUT_IF(concrete[cell], "Cell is concrete! Cannot reassign!")
-	DEBUG_OUTPUT_IF(val > this->size, "ERROR: Value %d is out of range!", val)
-	if (concrete[cell] || val > this->size) {
-		DEBUG_FUNC_END()
-		return false;
-	}
-	this->values[cell] = val;
-
-	DEBUG_OUTPUT("New value at row %d and column %d: %d", row, col, this->values[cell])
-	DEBUG_FUNC_END()
-	return true;
 }
 
 bool Puzzle::setValue(unsigned cell, unsigned char val) {
@@ -443,7 +286,7 @@ bool Puzzle::hasConflictAt(unsigned cell) const {
 	if (value == 0) return false;
 
 	// iterate over list of neighbors
-	unsigned *neighbor = this->neighbors[cell];
+	unsigned *neighbor = graphNeighborsByCell(this->size)[cell];
 	unsigned *neighborCeiling = neighbor + this->computeNeighborhoodSize();
 	for ( ; neighbor < neighborCeiling; neighbor++) 
 		// conflict found if any neighbor shares the same value
@@ -488,7 +331,7 @@ unsigned Puzzle::numConflictsInBox(unsigned char majorRow, unsigned char majorCo
 unsigned Puzzle::numConflictsAt(unsigned cell) const {
 	DEBUG_OUTPUT("Puzzle::numConflictsAt(%d)", cell)
 	unsigned value = this->values[cell], conflicts = 0;
-	unsigned *neighbor = this->neighbors[cell];
+	unsigned *neighbor = graphNeighborsByCell(this->size)[cell];
 	unsigned *neighborCeiling = neighbor + this->computeNeighborhoodSize();
 	for ( ; neighbor < neighborCeiling; neighbor++)
 		if (*neighbor == value) conflicts++;
@@ -531,8 +374,6 @@ void Puzzle::swap(Puzzle &other) {
 	std::swap(values, other.values);
 	std::swap(concrete, other.concrete);
 	std::swap(solution, other.solution);
-	std::swap(neighbors, other.neighbors);
-	std::swap(neighborhoods, other.neighborhoods);
 }
 
 Puzzle::~Puzzle() {
@@ -547,17 +388,4 @@ Puzzle::~Puzzle() {
 
 	DEBUG_OUTPUT_IF(this->solution != nullptr, "Deleting solution") 
 	if (this->solution != nullptr) delete[] this->solution;
-
-	DEBUG_OUTPUT("Deleting Neighbors")
-	for (unsigned **i = this->neighbors, **iMax = i + this->sizeSquared; i < iMax; i++) delete[] *i;
-	delete[] this->neighbors;
-
-	DEBUG_OUTPUT("Deleting Neighborhoods")
-	for (unsigned ***i = this->neighborhoods, ***iMax = i + this->sizeSquared; i < iMax; i++) {
-		for (unsigned **j = *i, **jMax = j + 3; j < jMax; j++) {
-			delete[] *j;
-		}
-		delete[] *i;
-	}
-	delete[] this->neighborhoods;
 }

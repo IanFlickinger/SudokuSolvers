@@ -14,28 +14,24 @@ class PuzzleLoader {
         const unsigned long datasetSize;
         const unsigned char puzzleSize;
         const unsigned puzzleSizeSquared;
-        const unsigned lineSize;
+        unsigned lineSize;
+        unsigned headerSize;
         unsigned randMultiplier;
         unsigned seed;
         unsigned batchSize;
+        unsigned puzzleCursor;
+
     public:
         PuzzleLoader(std::string filepath, unsigned long datasetSize, unsigned char puzzleSize) : 
             PuzzleLoader(filepath, datasetSize, puzzleSize, time(NULL)) {};
-        PuzzleLoader(std::string filepath, unsigned long datasetSize, unsigned char puzzleSize, unsigned seed) : // TODO: use seed to instantiate a RNG member
-            file(filepath), datasetSize(datasetSize), puzzleSize(puzzleSize), puzzleSizeSquared(puzzleSize*puzzleSize), 
-            lineSize((puzzleSizeSquared + 1) << 1), // 2*puzzleSizeSquared numbers per row + 2 extra characters (',' and '\n')
-            seed(seed), batchSize(0) 
-        {
-            unsigned randMaxLowerBound = RAND_MAX_LOWER_BOUND_FACTOR * datasetSize;
-            randMultiplier = randMaxLowerBound > RAND_MAX ? RAND_MAX / randMaxLowerBound : 1;
-        };
+        PuzzleLoader(std::string filepath, unsigned long datasetSize, unsigned char puzzleSize, unsigned seed);
 
         // void batch(unsigned batchSize) { this->batchSize = batchSize; }
 
         // Puzzle * next();
 
-        Puzzle load(unsigned seed) const;
-        inline Puzzle load() const { return load(time(NULL)); }
+        Puzzle load(unsigned seed);
+        inline Puzzle load() { return load(0); }
 };
 
 class PuzzleDumper {

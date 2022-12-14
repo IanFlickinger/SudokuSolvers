@@ -5,8 +5,8 @@
 
 #include <iostream>
 
-#define DEBUG_ENABLED false
-#define DEBUG_ENABLED_VERBOSE false
+// #define DEBUG_ENABLED
+// #define DEBUG_ENABLED_VERBOSE
 #include "debugging.h"
 
 

@@ -10,15 +10,15 @@ void RUN_BENCHMARKS(int argc, char **argv);
 
 class BenchmarkPuzzleLoader {
     private:
-        const PuzzleLoader * loader;
+        PuzzleLoader * loader;
     public:
         static unsigned calls;
         static BenchmarkPuzzleLoader * GetInstance();
 
         BenchmarkPuzzleLoader() {};
         ~BenchmarkPuzzleLoader() { delete this->loader; }
-        void setLoader(const PuzzleLoader * loader) { delete this->loader; this->loader = loader; }
-        const PuzzleLoader &getLoader() const { return *this->loader; }
+        void setLoader(PuzzleLoader * loader) { delete this->loader; this->loader = loader; }
+        PuzzleLoader &getLoader() const { return *this->loader; }
 };
 
 
