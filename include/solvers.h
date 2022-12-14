@@ -42,15 +42,18 @@ class GeometricAnnealingSolver : public virtual AnnealingSolver {
 class GraphSolver : public virtual Solver {
     protected: const unsigned maxIters;
     public: 
-        GraphSolver() : maxIters(100UL) {};
+        GraphSolver() : maxIters(1000UL) {};
         GraphSolver(unsigned iters) : maxIters(iters) {};
 };
-class SimpleAdditiveGraphSolver : public virtual GraphSolver
-    { public: void solve(Puzzle&) override; };
-class AdditiveGraphSolver : public virtual GraphSolver
-    { public: void solve(Puzzle&) override; };
-class MultiplicativeGraphSolver : public virtual GraphSolver
-    { public: void solve(Puzzle&) override; };
+#define SUDOKU_GRAPH_SOLVER_DEF(name) class name : public virtual GraphSolver { \
+    public: \
+        void solve(Puzzle&) override; \
+        name()=default; \
+        name(unsigned iters) : GraphSolver(iters) {}; \
+};
+SUDOKU_GRAPH_SOLVER_DEF(SimpleAdditiveGraphSolver)
+SUDOKU_GRAPH_SOLVER_DEF(AdditiveGraphSolver)
+SUDOKU_GRAPH_SOLVER_DEF(MultiplicativeGraphSolver)
 
 }
 

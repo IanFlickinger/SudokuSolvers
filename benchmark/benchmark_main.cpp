@@ -7,9 +7,9 @@ SET_LOADER(PuzzleLoader("../9x9.csv", 1000000UL, 9));
 ADD_SOLVER(Solvers::DepthFirstSolver(), DepthFirst)
 ADD_SOLVER(Solvers::DepthFirstSolverV1(), DepthFirstV1)
 // ADD_SOLVER(Solvers::GeometricAnnealingSolver(10, 50, 2000, 0.2), GeometricAnnealing)
-ADD_SOLVER(Solvers::AdditiveGraphSolver(), AdditiveGraph)
-ADD_SOLVER(Solvers::SimpleAdditiveGraphSolver(), SimpleAdditiveGraph)
-ADD_SOLVER(Solvers::MultiplicativeGraphSolver(), MultiplicativeGraph)
+ADD_SOLVER(Solvers::AdditiveGraphSolver(100), AdditiveGraph)
+ADD_SOLVER(Solvers::SimpleAdditiveGraphSolver(100), SimpleAdditiveGraph)
+ADD_SOLVER(Solvers::MultiplicativeGraphSolver(100), MultiplicativeGraph)
 /****************************************************************************************/
 
 int main(int argc, char **argv) {
