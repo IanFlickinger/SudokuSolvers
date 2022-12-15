@@ -35,7 +35,8 @@ class GeometricAnnealingSolver : public virtual AnnealingSolver {
     private:
         double tempInit, tempFact;
     public: 
-        GeometricAnnealingSolver(unsigned reheats, unsigned iterations, double initialTemp, double tempFactor);
+        GeometricAnnealingSolver(unsigned reheats, unsigned iterations, double initialTemp, double tempFactor) :
+            AnnealingSolver(reheats, iterations), tempInit(initialTemp), tempFact(tempFactor) {};
         inline double tempSchedule(unsigned iteration, double temperature) override;
 };
 
