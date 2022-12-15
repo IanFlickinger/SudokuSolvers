@@ -105,7 +105,7 @@ void AnnealingSolver::solve(Puzzle &puzzle) {
     DEBUG_FUNC_END()
 }
 
-inline double GeometricAnnealingSolver::tempSchedule(unsigned iteration, double temperature) {
+double GeometricAnnealingSolver::tempSchedule(unsigned iteration, double temperature) {
     DEBUG_OUTPUT("GeometricAnnealingSolver::tempSchedule(%d, %f) = %f", iteration, temperature, 
                  iteration == 0 ? tempInit : temperature * tempFact)
     return iteration == 0 ? tempInit : temperature * tempFact;
